@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тренажёр выводов R</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one phone-width column; the R console is the hero of every card, questions stack under it. */
+:root{
+  --bg:#f4f6f9; --surface:#ffffff; --ink:#18212d; --muted:#5a6577; --line:#dce2ea;
+  --accent:#1f62b3; --accent-soft:#e7effa; --ok:#1d7a4c; --ok-soft:#e3f3ea; --bad:#b0412a; --bad-soft:#fbeae5;
+  --console-bg:#101821; --console-ink:#dbe4ee; --prompt:#8ab8ff; --console-dim:#8796a8;
+  --font-body:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e131a; --surface:#161d26; --ink:#e5eaf1; --muted:#9aa6b5; --line:#2a3441;
+    --accent:#6fa3ee; --accent-soft:#1b283a; --ok:#5cc08b; --ok-soft:#14281d; --bad:#ee8b70; --bad-soft:#331f1a;
+    --console-bg:#0a0e14; --console-ink:#d9e2ec; --prompt:#8ab8ff; --console-dim:#7d8a9b; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e131a; --surface:#161d26; --ink:#e5eaf1; --muted:#9aa6b5; --line:#2a3441;
+  --accent:#6fa3ee; --accent-soft:#1b283a; --ok:#5cc08b; --ok-soft:#14281d; --bad:#ee8b70; --bad-soft:#331f1a;
+  --console-bg:#0a0e14; --console-ink:#d9e2ec; --prompt:#8ab8ff; --console-dim:#7d8a9b; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px 96px}
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.topin{max-width:760px;margin:0 auto;padding:10px 16px 8px;display:flex;flex-direction:column;gap:8px}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.brand h1{font-size:18px;font-weight:600;margin:0;letter-spacing:-.01em}
+.brand .stat{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tabs{display:flex;gap:6px}
+.tab{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:500;padding:6px 10px;border-radius:10px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:13px;padding:5px 11px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:500}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-top:14px;overflow:hidden}
+.card-h{padding:14px 16px 4px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.idx{font-family:var(--font-mono);font-size:13px;color:var(--muted)}
+.tag{font-size:12px;font-weight:500;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.card h2{font-size:17px;font-weight:600;margin:4px 16px 6px;font-family:var(--font-mono);letter-spacing:-.01em;text-wrap:balance}
+.intro{padding:0 16px 6px;font-size:15px}
+.intro p{margin:6px 0}
+.intro .dz{color:var(--muted);font-size:14px}
+code{font-family:var(--font-mono);font-size:.92em;background:var(--accent-soft);padding:1px 4px;border-radius:4px}
+.console{margin:8px 0 0;background:var(--console-bg);color:var(--console-ink);font-family:var(--font-mono);font-size:12px;line-height:1.45;padding:12px 14px;overflow-x:auto;white-space:pre;tab-size:4}
+.console .pr{color:var(--prompt)}
+.console .dim{color:var(--console-dim)}
+.zoom{display:flex;justify-content:flex-end;gap:6px;padding:6px 12px 0;background:var(--console-bg)}
+.zoom button{background:transparent;border:1px solid #33414f;color:#c8d3df;font:inherit;font-size:12px;border-radius:6px;padding:2px 8px;cursor:pointer}
+.qs{padding:6px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.q{border:1px solid var(--line);border-radius:12px;padding:12px}
+.q.done-ok{border-color:var(--ok)}
+.q.done-bad{border-color:var(--bad)}
+.qn{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:2px}
+.qt{font-weight:500}
+.opts{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.opt{text-align:left;font:inherit;font-size:15px;line-height:1.4;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:9px 11px;cursor:pointer}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.bad{border-color:var(--bad);background:var(--bad-soft)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.row input{font:inherit;font-family:var(--font-mono);font-size:16px;width:150px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.unit{color:var(--muted);font-size:14px}
+.btn{font:inherit;font-size:14px;font-weight:500;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.res{font-weight:600;font-size:14px}
+.res.ok{color:var(--ok)} .res.bad{color:var(--bad)}
+.ex{display:none;margin-top:10px;font-size:14.5px;background:var(--bg);border-radius:10px;padding:10px 12px;border-left:3px solid var(--accent)}
+.ex.on{display:block}
+.ex b{font-weight:600}
+.err{color:var(--bad);font-size:13px}
+nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);z-index:5}
+.navin{max-width:760px;margin:0 auto;padding:8px 16px calc(8px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center}
+.navin .btn{flex:1;white-space:nowrap;padding:9px 8px}
+.navin #prev{flex:0 0 48px}
+.navin .jump{width:74px;font:inherit;font-family:var(--font-mono);font-size:15px;padding:7px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);text-align:center}
+.prog{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px}
+.pbox .k{font-size:12px;color:var(--muted)} .pbox .v{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.bar{height:5px;background:var(--line);border-radius:3px;margin-top:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent)}
+.empty{padding:24px 16px;color:var(--muted)}
+/* guide */
+.guide h2{font-size:19px;font-weight:600;margin:22px 0 6px;text-wrap:balance}
+.guide h3{font-size:16px;font-weight:600;margin:16px 0 4px}
+.guide p{margin:8px 0;max-width:65ch}
+.guide .box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+.guide .key{border-left:4px solid var(--accent)}
+.guide table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+.guide th,.guide td{border-bottom:1px solid var(--line);padding:6px 6px;text-align:left;vertical-align:top}
+.guide th{font-weight:600;color:var(--muted);font-size:13px}
+.tw{overflow-x:auto}
+.guide .console{border-radius:10px;margin:8px 0;font-size:11px}
+.guide ul,.guide ol{padding-left:20px;margin:6px 0}
+.guide li{margin:3px 0}
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.toc a{font-size:13px;color:var(--accent);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 10px}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion: no-preference){.opt,.btn,.chip{transition:background .15s,border-color .15s}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="topin">
+    <div class="brand"><h1>Тренажёр выводов R</h1><span class="stat" id="stat">0 / 2500 вопросов</span></div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-train" aria-selected="true">Тренировка</button>
+      <button class="tab" role="tab" id="tab-guide" aria-selected="false">Как читать вывод</button>
+    </div>
+    <div class="chips" id="chips-cat" aria-label="Тип модели"></div>
+    <div class="chips" id="chips-sub" aria-label="Подтип"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="view-train">
+    <div class="prog" id="prog"></div>
+    <div id="card"></div>
+  </section>
+  <section id="view-guide" class="guide" hidden>__GUIDE__</section>
+</main>
+
+<nav class="bottom" id="nav">
+  <div class="navin">
+    <button class="btn ghost" id="prev" aria-label="Предыдущий пример">←</button>
+    <input class="jump" id="jump" inputmode="numeric" aria-label="Номер примера" placeholder="№">
+    <button class="btn ghost" id="rand">Случайный</button>
+    <button class="btn" id="next">Дальше</button>
+  </div>
+</nav>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(function(){
+  var EX = JSON.parse(document.getElementById('data').textContent);
+  var CATS = [["all","Все"],["anova","ANOVA"],["lin","Линейная"],["logit","Логистическая"]];
+  var SUBS = {
+    anova:[["aov","summary(aov)"],["lmfac","lm с фактором"],["tukey","TukeyHSD"]],
+    lin:[["lin","Y ~ X"],["logy","log(Y) ~ X"],["logx","Y ~ log(X)"],["loglog","log(Y) ~ log(X)"]],
+    logit:[["g2","2 группы"],["gx","X непрерывный"],["g3","3 группы"]]
+  };
+  var SUBNAME = {aov:"ANOVA",lmfac:"lm с фактором",tukey:"TukeyHSD",lin:"Y ~ X",logy:"log(Y) ~ X",logx:"Y ~ log(X)",loglog:"log-log",g2:"Логистическая · 2 группы",gx:"Логистическая · X",g3:"Логистическая · 3 группы"};
+  var KEY = "r-trainer-v1";
+  var st = {cat:"all", sub:"", only:"", pos:{}, ans:{}};
+  try { var s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s) { st.cat = s.cat || "all"; st.sub = s.sub || ""; st.only = s.only || ""; st.pos = s.pos || {}; st.ans = s.ans || {}; } } catch(e) {}
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e) {} }
+
+  var byId = {}; EX.forEach(function(e){ byId[e.id] = e; });
+  function list(){
+    return EX.filter(function(e){
+      if (st.cat !== "all" && e.cat !== st.cat) return false;
+      if (st.sub && e.sub !== st.sub) return false;
+      if (st.only === "todo") return !fullyDone(e);
+      if (st.only === "wrong") return hasWrong(e);
+      return true;
+    });
+  }
+  function qkey(e,i){ return e.id + ":" + i; }
+  function fullyDone(e){ for (var i=0;i<e.qs.length;i++){ var a = st.ans[qkey(e,i)]; if (!a || !a.ok) return false; } return true; }
+  function hasWrong(e){ for (var i=0;i<e.qs.length;i++){ var a = st.ans[qkey(e,i)]; if (a && a.miss) return true; } return false; }
+  function filterKey(){ return st.cat + "|" + st.sub + "|" + st.only; }
+
+  // chips
+  function chip(label, pressed, onclick){ var b=document.createElement('button'); b.className='chip'; b.type='button'; b.textContent=label; b.setAttribute('aria-pressed', pressed ? 'true':'false'); b.onclick=onclick; return b; }
+  function renderChips(){
+    var c1 = document.getElementById('chips-cat'); c1.innerHTML='';
+    CATS.forEach(function(c){ c1.appendChild(chip(c[1], st.cat===c[0], function(){ st.cat=c[0]; st.sub=""; save(); renderAll(); })); });
+    c1.appendChild(chip("Нерешённые", st.only==="todo", function(){ st.only = st.only==="todo" ? "" : "todo"; save(); renderAll(); }));
+    c1.appendChild(chip("Мои ошибки", st.only==="wrong", function(){ st.only = st.only==="wrong" ? "" : "wrong"; save(); renderAll(); }));
+    var c2 = document.getElementById('chips-sub'); c2.innerHTML='';
+    if (st.cat !== "all") {
+      c2.hidden = false;
+      c2.appendChild(chip("Все подтипы", !st.sub, function(){ st.sub=""; save(); renderAll(); }));
+      SUBS[st.cat].forEach(function(s){ c2.appendChild(chip(s[1], st.sub===s[0], function(){ st.sub=s[0]; save(); renderAll(); })); });
+    } else { c2.hidden = true; }
+  }
+
+  // progress
+  function renderProg(){
+    var tot=0, solved=0, first=0;
+    var per = {anova:[0,0],lin:[0,0],logit:[0,0]};
+    EX.forEach(function(e){ e.qs.forEach(function(q,i){ tot++; var a=st.ans[qkey(e,i)]; if(a&&a.ok){ solved++; per[e.cat][0]++; if(!a.miss) first++; } per[e.cat][1]++; }); });
+    document.getElementById('stat').textContent = solved + " / " + tot + " вопросов";
+    var p = document.getElementById('prog'); p.innerHTML='';
+    [["anova","ANOVA"],["lin","Линейная"],["logit","Логистическая"]].forEach(function(c){
+      var d=per[c[0]]; var pct = d[1] ? Math.round(100*d[0]/d[1]) : 0;
+      var b=document.createElement('div'); b.className='pbox';
+      b.innerHTML='<div class="k">'+c[1]+'</div><div class="v">'+d[0]+' <span class="k">из '+d[1]+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div>';
+      p.appendChild(b);
+    });
+  }
+
+  function consoleHTML(text){
+    return text.split("\n").map(function(l){
+      var esc = l.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      if (l.indexOf("> ")===0) return '<span class="pr">'+esc+'</span>';
+      if (l.indexOf("Signif. codes")===0 || l==="---") return '<span class="dim">'+esc+'</span>';
+      return esc;
+    }).join("\n");
+  }
+  function parseNum(v){
+    v = String(v).replace(/−/g,'-').replace(/\s/g,'').replace(/,/g,'.').replace(/%/g,'');
+    if (!/^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(v)) return NaN;
+    return parseFloat(v);
+  }
+
+  var cur = null;
+  function current(){
+    var L = list(); if (!L.length) return null;
+    var k = filterKey(); var id = st.pos[k];
+    var idx = L.findIndex(function(e){ return e.id===id; });
+    if (idx < 0) { idx = 0; st.pos[k] = L[0].id; }
+    return {L:L, idx:idx, e:L[idx]};
+  }
+  function go(delta){ var c=current(); if(!c) return; var i=(c.idx+delta+c.L.length)%c.L.length; st.pos[filterKey()]=c.L[i].id; save(); renderCard(true); }
+  function goRandom(){ var c=current(); if(!c) return; var pool=c.L.filter(function(e){return !fullyDone(e);}); if(!pool.length) pool=c.L; var e=pool[Math.floor(Math.random()*pool.length)]; st.pos[filterKey()]=e.id; save(); renderCard(true); }
+  function goId(n){ var e=byId[n]; if(!e) return false; st.cat="all"; st.sub=""; st.only=""; st.pos[filterKey()]=n; save(); renderAll(true); return true; }
+
+  var fontSize = 12;
+  function renderCard(scroll){
+    var c = current(); var box = document.getElementById('card');
+    if (!c){ box.innerHTML = '<div class="card empty">Здесь пока пусто: под этот фильтр нет примеров. Сними «Нерешённые» или «Мои ошибки».</div>'; return; }
+    var e = c.e; cur = e;
+    var h = '<article class="card">';
+    h += '<div class="card-h"><span class="idx">№ '+e.id+' · '+(c.idx+1)+' из '+c.L.length+' в подборке</span><span class="tag">'+SUBNAME[e.sub]+'</span></div>';
+    h += '<h2>'+e.title.replace(/</g,"&lt;")+'</h2>';
+    h += '<div class="intro">'+e.intro+'</div>';
+    h += '<div class="zoom"><button type="button" id="zm">A−</button><button type="button" id="zp">A+</button></div>';
+    h += '<pre class="console" id="con" style="font-size:'+fontSize+'px">'+consoleHTML(e.console)+'</pre>';
+    h += '<div class="qs">';
+    e.qs.forEach(function(q,i){
+      var a = st.ans[qkey(e,i)];
+      var cls = a && a.ok ? (a.miss ? ' done-bad':' done-ok') : '';
+      h += '<div class="q'+cls+'" data-i="'+i+'"><div class="qn">Вопрос '+(i+1)+' из '+e.qs.length+'</div><div class="qt">'+q.q+'</div>';
+      if (q.t === 'mc') {
+        h += '<div class="opts">';
+        q.o.forEach(function(o,j){
+          var oc = '';
+          if (a && a.picked && a.picked.indexOf(j)>=0) oc = (j===q.a) ? ' ok':' bad';
+          h += '<button type="button" class="opt'+oc+'" data-j="'+j+'">'+o+'</button>';
+        });
+        h += '</div>';
+      } else {
+        var val = a && a.val ? String(a.val).replace(/"/g,'&quot;') : '';
+        h += '<div class="row"><input id="in-'+e.id+'-'+i+'" type="text" inputmode="decimal" autocomplete="off" aria-label="Ответ на вопрос '+(i+1)+'" value="'+val+'">'+(q.unit?'<span class="unit">'+q.unit+'</span>':'')+
+             '<button type="button" class="btn chk">Проверить</button><button type="button" class="btn ghost show">Ответ</button></div>'+
+             '<div class="row"><span class="res'+(a&&a.ok?' ok':'')+'">'+(a&&a.ok?(a.shown?'Ответ: '+fmt(q.a):'✓ Верно'):'')+'</span><span class="err"></span></div>';
+      }
+      h += '<div class="ex'+(a&&a.ok?' on':'')+'">'+q.ex+'</div></div>';
+    });
+    h += '</div></article>';
+    box.innerHTML = h;
+    bindCard(e);
+    if (scroll) window.scrollTo({top:0});
+  }
+  function fmt(x){ var s = (Math.abs(x)>=1000? x.toFixed(1) : Math.abs(x)>=10 ? x.toFixed(2) : Math.abs(x)>=1 ? x.toFixed(3) : x.toPrecision(3)); return s.replace('.',',').replace('-','−'); }
+
+  function bindCard(e){
+    document.getElementById('zm').onclick=function(){ fontSize=Math.max(9,fontSize-1); document.getElementById('con').style.fontSize=fontSize+'px'; };
+    document.getElementById('zp').onclick=function(){ fontSize=Math.min(17,fontSize+1); document.getElementById('con').style.fontSize=fontSize+'px'; };
+    document.querySelectorAll('.q').forEach(function(div){
+      var i = +div.getAttribute('data-i'); var q = e.qs[i]; var k = qkey(e,i);
+      var ex = div.querySelector('.ex');
+      if (q.t === 'mc') {
+        div.querySelectorAll('.opt').forEach(function(b){
+          b.onclick = function(){
+            var j = +b.getAttribute('data-j');
+            var a = st.ans[k] || {picked:[]}; a.picked = a.picked || [];
+            if (a.picked.indexOf(j) < 0) a.picked.push(j);
+            if (j === q.a) { a.ok = true; b.classList.add('ok'); ex.classList.add('on'); div.classList.add(a.miss?'done-bad':'done-ok'); }
+            else { if (!a.ok) a.miss = true; b.classList.add('bad'); ex.classList.add('on'); }
+            st.ans[k] = a; save(); renderProg();
+          };
+        });
+      } else {
+        var inp = div.querySelector('input'), res = div.querySelector('.res'), err = div.querySelector('.err');
+        function check(){
+          var x = parseNum(inp.value);
+          if (isNaN(x)) { err.textContent = 'Впиши число, например 1,25 или −0,4'; return; }
+          err.textContent = '';
+          var a = st.ans[k] || {}; a.val = inp.value;
+          var y = q.abs ? Math.abs(x) : x;
+          var ok = Math.abs(y - q.a) <= q.tol + 1e-9 * Math.max(1, Math.abs(q.a));
+          if (ok) { a.ok = true; res.className='res ok'; res.textContent='✓ Верно'; ex.classList.add('on'); div.classList.add(a.miss?'done-bad':'done-ok'); }
+          else { if (!a.ok) a.miss = true; res.className='res bad'; res.textContent='✗ Не то. Попробуй ещё или открой ответ'; }
+          st.ans[k] = a; save(); renderProg();
+        }
+        div.querySelector('.chk').onclick = check;
+        inp.addEventListener('keydown', function(ev){ if (ev.key === 'Enter') check(); });
+        inp.addEventListener('input', function(){ err.textContent=''; });
+        div.querySelector('.show').onclick = function(){
+          var a = st.ans[k] || {}; if (!a.ok) { a.miss = true; } a.ok = true; a.shown = true; st.ans[k]=a; save();
+          res.className='res ok'; res.textContent='Ответ: ' + fmt(q.a) + (q.unit? ' ' + q.unit : ''); ex.classList.add('on'); div.classList.add('done-bad'); renderProg();
+        };
+      }
+    });
+  }
+
+  function setTab(t){
+    var g = t === 'guide';
+    document.getElementById('tab-train').setAttribute('aria-selected', g?'false':'true');
+    document.getElementById('tab-guide').setAttribute('aria-selected', g?'true':'false');
+    document.getElementById('view-train').hidden = g;
+    document.getElementById('view-guide').hidden = !g;
+    document.getElementById('nav').hidden = g;
+    document.getElementById('chips-cat').hidden = g;
+    document.getElementById('chips-sub').hidden = g || st.cat === 'all';
+    try { if ((location.hash === '#guide') !== g) history.replaceState(null, '', g ? '#guide' : '#train'); } catch(e) {}
+  }
+  function renderAll(scroll){ renderChips(); renderProg(); renderCard(scroll); }
+
+  document.getElementById('tab-train').onclick = function(){ setTab('train'); window.scrollTo({top:0}); };
+  document.getElementById('tab-guide').onclick = function(){ setTab('guide'); window.scrollTo({top:0}); };
+  document.getElementById('prev').onclick = function(){ go(-1); };
+  document.getElementById('next').onclick = function(){ go(1); };
+  document.getElementById('rand').onclick = goRandom;
+  var jump = document.getElementById('jump');
+  jump.addEventListener('keydown', function(ev){ if (ev.key==='Enter'){ var n=parseInt(jump.value,10); if(goId(n)){ jump.value=''; jump.blur(); } } });
+  jump.addEventListener('change', function(){ var n=parseInt(jump.value,10); if(goId(n)){ jump.value=''; } });
+  document.querySelectorAll('.guide a[data-go]').forEach(function(a){ a.addEventListener('click', function(ev){ ev.preventDefault(); var el=document.getElementById(a.getAttribute('data-go')); if(el) el.scrollIntoView(); }); });
+  window.addEventListener('hashchange', function(){ setTab(location.hash==='#guide'?'guide':'train'); });
+
+  renderAll(false);
+  setTab(location.hash === '#guide' ? 'guide' : 'train');
+})();
+</script>
+</body>
+</html>

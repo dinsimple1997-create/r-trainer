@@ -1,0 +1,176 @@
+<p style="margin-top:16px">Короткие правила к каждому виду вывода. Во вкладке «Тренировка» те же вещи на 500 примерах.</p>
+<div class="toc">
+  <a href="#" data-go="g-any">С чего начать</a>
+  <a href="#" data-go="g-slope">Наклон b₁</a>
+  <a href="#" data-go="g-aov">ANOVA</a>
+  <a href="#" data-go="g-dummy">Группы в lm и glm</a>
+  <a href="#" data-go="g-tukey">TukeyHSD</a>
+  <a href="#" data-go="g-log">Логарифмы</a>
+  <a href="#" data-go="g-logit">Логистическая</a>
+  <a href="#" data-go="g-ci">ДИ и прогноз</a>
+  <a href="#" data-go="g-calc">Калькулятор</a>
+</div>
+
+<h2 id="g-any">С чего начать любой вывод</h2>
+<ol>
+  <li><b>Строка с формулой</b> (<code>lm(…)</code>, <code>aov(…)</code>, <code>glm(…)</code>): слева от <code>~</code> отклик Y, справа X или группа.</li>
+  <li><b>Есть ли <code>log()</code></b> и с какой стороны. От этого зависит, брать ли e.</li>
+  <li><b>Какая функция:</b> <code>aov</code> — ANOVA; <code>lm</code> — линейная регрессия (или ANOVA, если справа группа); <code>glm(…, family = binomial)</code> — логистическая.</li>
+  <li><b>Найди строку, о которой спрашивают</b>, и бери числа из неё: Estimate, Std. Error, t (или z), p.</li>
+</ol>
+
+<h2 id="g-slope">Наклон b₁: что это на самом деле</h2>
+<div class="box key">
+  <p><b>b₁ — на сколько единиц Y в среднем меняется Y, если X больше на 1 единицу.</b> Больше ничего. Единицы b₁ — «единицы Y на одну единицу X».</p>
+</div>
+<p>Пример: масса поросёнка при отъёме (кг) от возраста отъёма (дни). R выдал (Intercept) = 1,00 и age = 0,24. Прямая: Ŷ = 1,00 + 0,24 · age.</p>
+<div class="tw"><table>
+  <tr><th>Возраст, дни</th><th>Ŷ = 1,00 + 0,24 × возраст</th><th>Разница с предыдущим</th></tr>
+  <tr><td>20</td><td>1,00 + 4,80 = 5,80 кг</td><td></td></tr>
+  <tr><td>21</td><td>1,00 + 5,04 = 6,04 кг</td><td>+0,24</td></tr>
+  <tr><td>22</td><td>1,00 + 5,28 = 6,28 кг</td><td>+0,24</td></tr>
+  <tr><td>25</td><td>1,00 + 6,00 = 7,00 кг</td><td>+0,72 за 3 дня (3 × 0,24)</td></tr>
+</table></div>
+<ul>
+  <li><b>Каждый +1 день</b> → средняя масса на 0,24 кг больше. Это и есть b₁.</li>
+  <li><b>+k единиц X</b> → среднее Y меняется на k × b₁. Сдвиг b₀ при этом не нужен — он сокращается.</li>
+  <li><b>Минус у b₁</b> → с ростом X среднее Y падает.</li>
+  <li><b>(Intercept) b₀</b> — прогноз при X = 0. Читать по смыслу можно, только если X = 0 есть в данных (возраст отъёма 0 дней — нет).</li>
+  <li><b>«в среднем»</b>: конкретные поросята разбросаны вокруг прямой примерно на Residual standard error.</li>
+  <li><b>Опыт или наблюдение:</b> если X назначали случайно — «увеличение X вызывает…»; если нет — «связано с…».</li>
+</ul>
+<div class="box"><b>EN:</b> Each 1-day increase in age at weaning is associated with a 0.24 kg increase in mean weaning weight.</div>
+<h3>Остальные числа в строке наклона</h3>
+<div class="tw"><table>
+  <tr><th>Число</th><th>Что это</th><th>Как получить</th></tr>
+  <tr><td>Std. Error</td><td>насколько «дрожит» сам наклон от выборки к выборке</td><td>из вывода</td></tr>
+  <tr><td>t value</td><td>во сколько SE наклон отстоит от 0</td><td>Estimate / Std. Error</td></tr>
+  <tr><td>Pr(&gt;|t|)</td><td>p для H₀: β₁ = 0 (связи нет)</td><td>&lt; 0,05 → связь значима</td></tr>
+  <tr><td>95 % ДИ</td><td>где с уверенностью 95 % лежит настоящий β₁</td><td>b₁ ± qt × SE, или <code>confint(m)</code></td></tr>
+</table></div>
+<h3>Нижняя часть summary(lm)</h3>
+<ul>
+  <li><b>Residual standard error: s on df</b> — типичный промах отдельной точки мимо прямой (в единицах Y). n = df + 2 (для одной X).</li>
+  <li><b>Multiple R-squared</b> — доля разброса Y, объяснённая прямой. Adjusted — с поправкой на число параметров.</li>
+  <li><b>F-statistic</b> — при одной X это t² наклона, p тот же.</li>
+</ul>
+
+<h2 id="g-aov">ANOVA: summary(aov)</h2>
+<pre class="console">            Df Sum Sq Mean Sq F value  Pr(&gt;F)
+diet         3  10520    3507   6.124 0.00182 **
+Residuals   36  20615     573</pre>
+<div class="tw"><table>
+  <tr><th>Что нужно</th><th>Где / как</th><th>Здесь</th></tr>
+  <tr><td>число групп k</td><td>Df фактора + 1</td><td>3 + 1 = 4</td></tr>
+  <tr><td>число наблюдений N</td><td>Df фактора + Df Residuals + 1</td><td>3 + 36 + 1 = 40</td></tr>
+  <tr><td>MSE (шум)</td><td>Mean Sq в строке Residuals</td><td>573</td></tr>
+  <tr><td>σ̂ (pooled SD)</td><td>√MSE</td><td>√573 = 23,9</td></tr>
+  <tr><td>F</td><td>Mean Sq фактора / MSE</td><td>3507 / 573 = 6,12</td></tr>
+  <tr><td>R²</td><td>SS фактора / (SS фактора + SS Residuals)</td><td>10520 / 31135 = 0,34</td></tr>
+</table></div>
+<p><b>Вывод по p:</b> p &lt; 0,05 → хотя бы одно среднее отличается (какое — F не говорит). p ≥ 0,05 → нет доказательств различий (но и равенство не доказано).</p>
+<p><b>Сравнить две группы руками:</b> SE = √(MSE × (1/n₁ + 1/n₂)); t = разница / SE; ДИ = разница ± qt × SE, df = df Residuals. MSE и df берём из всей таблицы, даже если сравниваем только две группы.</p>
+<p><b>Контраст</b> с коэффициентами c: g = Σ c·среднее; SE = √(MSE × Σ c²/n).</p>
+
+<h2 id="g-dummy">Группы в lm и glm: где «вторая» группа</h2>
+<div class="box key"><p>Когда справа от <code>~</code> стоит группа, R делает из неё переменные 0/1. <b>Первая по алфавиту группа становится референтной</b> — её строки в выводе нет, она «спрятана» в (Intercept). Каждая строка вида <code>dietB</code> — это <b>разница «B минус референтная»</b>.</p></div>
+<div class="tw"><table>
+  <tr><th>Группа</th><th>dietB</th><th>dietC</th><th>Ŷ</th></tr>
+  <tr><td>A (референтная)</td><td>0</td><td>0</td><td>b₀</td></tr>
+  <tr><td>B</td><td>1</td><td>0</td><td>b₀ + b<sub>B</sub></td></tr>
+  <tr><td>C</td><td>0</td><td>1</td><td>b₀ + b<sub>C</sub></td></tr>
+</table></div>
+<pre class="console">            Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)   450.00       8.00   56.25  &lt; 2e-16 ***
+dietB          20.00      11.31    1.77  0.08554 .
+dietC          35.00      11.31    3.09  0.00381 **</pre>
+<ul>
+  <li>Среднее A = 450 (это (Intercept)).</li>
+  <li>Среднее B = 450 + 20 = 470; среднее C = 450 + 35 = 485.</li>
+  <li><b>C − B</b> = 35 − 20 = 15: A сокращается. Отдельной строки для этого нет.</li>
+  <li>p в строке dietB проверяет «B = A», а не «B = 0».</li>
+  <li>F-statistic внизу — общий тест «все средние равны», тот же, что в ANOVA.</li>
+</ul>
+<p>В <b>glm</b> то же самое, только на шкале log-odds: (Intercept) — log-odds референтной группы, строка группы — разница log-odds (см. ниже).</p>
+
+<h2 id="g-tukey">TukeyHSD</h2>
+<pre class="console">$diet
+    diff       lwr      upr     p adj
+B-A   20 -7.645000 47.64500 0.1946083
+C-A   35  7.355000 62.64500 0.0103658</pre>
+<ul>
+  <li><b>«C-A»</b> читается «среднее C минус среднее A».</li>
+  <li><b>p adj</b> уже с поправкой на все пары — сравниваешь с 0,05.</li>
+  <li><b>lwr, upr</b> — 95 % ДИ разницы с той же поправкой. Ноль внутри ⇔ p adj ≥ 0,05.</li>
+  <li>Число пар = k(k − 1)/2. p adj больше обычного p, потому что Тьюки защищает от случайных находок на всём наборе пар.</li>
+</ul>
+
+<h2 id="g-log">Логарифмы: два вопроса</h2>
+<div class="box key">
+  <ol>
+    <li><b>Y под log?</b> Да → от коэффициентов (и концов ДИ, и сдвига) берём e. Говорим «в … раз» / «на … %» и слово <b>медиана</b>. Нет → e не берём.</li>
+    <li><b>X под log?</b> Да → при прогнозе подставляем ln X; в трактовке говорим «X в 2 раза» и умножаем b₁ на 0,693. Нет → «+1 к X».</li>
+  </ol>
+</div>
+<div class="tw"><table>
+  <tr><th>Модель</th><th>Как читать b₁</th><th>Прогноз</th></tr>
+  <tr><td><code>y ~ x</code></td><td>+1 к X → среднее Y + b₁</td><td>b₀ + b₁·X</td></tr>
+  <tr><td><code>log(y) ~ x</code></td><td>+1 к X → медиана Y × e<sup>b₁</sup>; % = (e<sup>b₁</sup> − 1)·100; +k к X → × e<sup>k·b₁</sup></td><td>e<sup>b₀ + b₁·X</sup> (медиана)</td></tr>
+  <tr><td><code>y ~ log(x)</code></td><td>X × 2 → среднее Y + 0,693·b₁; X × 10 → + 2,303·b₁</td><td>b₀ + b₁·ln X</td></tr>
+  <tr><td><code>log(y) ~ log(x)</code></td><td>X × 2 → медиана Y × 2<sup>b₁</sup>; +1 % X ≈ +b₁ % Y</td><td>e<sup>b₀ + b₁·ln X</sup></td></tr>
+</table></div>
+<p><b>Проценты перемножаются.</b> b₁ = −0,0184 на 1 единицу: на 10 единиц не 10 × 1,8 = 18 %, а e<sup>−0,184</sup> = 0,832 → на 17 % ниже.</p>
+<p><b>Не переводят через e:</b> R², t, p, F.</p>
+<p><b>Почему медиана:</b> e от среднего логарифмов — это середина данных, а не их среднее. 2, 4, 8: среднее 4,67, а e<sup>среднее ln</sup> = 4.</p>
+
+<h2 id="g-logit">Логистическая регрессия</h2>
+<div class="box key"><p>R считает всё на шкале <b>log-odds</b>. Цепочка туда и обратно:</p>
+<p><b>вероятность p</b> → шансы = p / (1 − p) → log-odds = ln(шансы)<br>
+<b>log-odds</b> → шансы = e<sup>log-odds</sup> → вероятность = шансы / (1 + шансы)</p></div>
+<p>Пример: p = 0,20 → шансы 0,2/0,8 = 0,25 («1 к 4») → log-odds = ln 0,25 = −1,39.</p>
+<h3>Две группы: где «вторая» группа</h3>
+<pre class="console">             Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)   -0.7500     0.1800  -4.167 3.09e-05 ***
+groupVaccine  -1.1000     0.3200  -3.438 5.87e-04 ***</pre>
+<p>Строки Control нет → Control референтная. Она в (Intercept).</p>
+<div class="tw"><table>
+  <tr><th></th><th>log-odds</th><th>шансы = e<sup>log-odds</sup></th><th>вероятность</th></tr>
+  <tr><td>Control (референтная)</td><td>b₀ = −0,75</td><td>e<sup>−0,75</sup> = 0,472</td><td>0,472 / 1,472 = 0,32</td></tr>
+  <tr><td>Vaccine</td><td>b₀ + b₁ = −0,75 − 1,10 = −1,85</td><td>e<sup>−1,85</sup> = 0,157</td><td>0,157 / 1,157 = 0,14</td></tr>
+</table></div>
+<ul>
+  <li><b>OR «Vaccine против Control»</b> = e<sup>b₁</sup> = e<sup>−1,10</sup> = 0,333 (= 0,157 / 0,472). Шансы заболеть у вакцинированных в 3 раза ниже.</li>
+  <li><b>OR наоборот, «Control против Vaccine»</b> = 1 / 0,333 = e<sup>+1,10</sup> = 3,0. Отдельной строки нет — просто переворачиваешь.</li>
+  <li><b>OR — отношение шансов, не вероятностей.</b> Вероятности здесь 0,32 и 0,14: их отношение 2,3, а не 3.</li>
+  <li><b>p в строке groupVaccine</b> проверяет H₀: β₁ = 0, то есть OR = 1 (шансы одинаковы).</li>
+</ul>
+<div class="box"><b>EN:</b> The odds of disease for vaccinated pigs are estimated to be e<sup>−1.10</sup> = 0.33 times the odds for unvaccinated pigs (about 67% lower odds).</div>
+<h3>Три группы</h3>
+<p>Обе строки — против референтной A. OR «C против B» = e<sup>b<sub>C</sub> − b<sub>B</sub></sup> (или OR<sub>C</sub> / OR<sub>B</sub>). Вероятность в C: e<sup>b₀ + b<sub>C</sub></sup> / (1 + e<sup>b₀ + b<sub>C</sub></sup>).</p>
+<h3>Непрерывный X</h3>
+<ul>
+  <li>+1 к X → шансы × e<sup>b₁</sup>. +k к X → шансы × e<sup>k·b₁</sup> (не k × OR).</li>
+  <li>% изменения шансов = (e<sup>b₁</sup> − 1) × 100.</li>
+  <li>Вероятность при X₀: log-odds = b₀ + b₁·X₀ → шансы → вероятность.</li>
+  <li>Вероятность меняется неравномерно (S-кривая): постоянны только шансы «в разах».</li>
+</ul>
+
+<h2 id="g-ci">Доверительные интервалы и прогноз</h2>
+<div class="tw"><table>
+  <tr><th>Что</th><th>Формула</th><th>Множитель</th></tr>
+  <tr><td>Коэффициент lm</td><td>b ± qt × SE</td><td>qt(0.975, df остатков)</td></tr>
+  <tr><td>Разница двух средних (ANOVA)</td><td>разница ± qt × √(MSE(1/n₁ + 1/n₂))</td><td>qt(0.975, df Residuals)</td></tr>
+  <tr><td>OR в glm (Wald)</td><td>e<sup>b ± 1,96 × SE</sup></td><td>1,96</td></tr>
+  <tr><td>log(Y): множитель</td><td>e от каждого конца confint</td><td>—</td></tr>
+</table></div>
+<p><b>predict(…, interval = "confidence")</b> — ДИ для <b>среднего</b> Y при этом X (узкий). <b>interval = "prediction"</b> — для <b>одного нового</b> наблюдения (шире: добавляется разброс s). Оба уже всего в середине данных по X.</p>
+<p><b>Как сказать ДИ:</b> «С уверенностью 95 % … от L до U». Не «95 % наблюдений» и не «при повторении 100 раз всегда».</p>
+
+<h2 id="g-calc">Калькулятор</h2>
+<ul>
+  <li><b>e<sup>x</sup>:</b> кнопка eˣ (часто через 2nd + ln) или e → xʸ → x.</li>
+  <li><b>e<sup>−x</sup></b> = 1 / e<sup>x</sup>: посчитай e<sup>0,0184</sup> = 1,0186, потом 1/x → 0,982.</li>
+  <li><b>ln</b> — кнопка ln. ln 2 = 0,693; ln 10 = 2,303.</li>
+  <li><b>2<sup>b</sup></b> — кнопка xʸ.</li>
+  <li><b>Проверка знака:</b> отрицательный коэффициент → множитель меньше 1.</li>
+</ul>
