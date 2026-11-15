@@ -908,17 +908,24 @@ PLAN = [
 
 
 def main():
-    out = []
+    import gen2
     seed = 20261114
+    out = []
     for sub, fn, bank, count in PLAN:
         for i in range(count):
             rng = np.random.default_rng(seed + len(out) * 7919)
-            c = bank[i % len(bank)]
-            ex = fn(rng, c)
-            out.append(ex)
-    # interleave so that sequential browsing mixes types
+            out.append(fn(rng, bank[i % len(bank)]))
+    # v1.0 order and ids stay the same, so saved progress keeps matching
     order = np.random.default_rng(7).permutation(len(out))
     out = [out[i] for i in order]
+    # v1.1: Poisson + multiple regression, appended after id 500
+    new = []
+    for sub, fn, bank, count in gen2.PLAN2:
+        for i in range(count):
+            rng = np.random.default_rng(seed + (len(out) + len(new)) * 7919)
+            new.append(fn(rng, bank[i % len(bank)]))
+    order2 = np.random.default_rng(8).permutation(len(new))
+    out += [new[i] for i in order2]
     for i, e in enumerate(out):
         e["id"] = i + 1
     json.dump(out, open("examples.json", "w"), ensure_ascii=False, separators=(",", ":"))

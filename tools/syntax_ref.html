@@ -1,0 +1,108 @@
+<p style="margin-top:16px">Как заниматься: в каждом упражнении сначала перепечатай код в поле под ним (пробелы и вид кавычек не важны, регистр букв важен), потом выбери, что этот код делает. Кнопки над полем вставляют символы, которые на телефоне искать дольше всего: <code>&lt;-</code>, <code>|&gt;</code>, <code>~</code>, <code>$</code>.</p>
+<div class="toc">
+  <a href="#" data-go="s-style">Правила записи</a>
+  <a href="#" data-go="s-b1">1 · База</a>
+  <a href="#" data-go="s-b2">2 · Таблицы</a>
+  <a href="#" data-go="s-b3">3 · Модели</a>
+  <a href="#" data-go="s-b4">4 · ggplot2</a>
+  <a href="#" data-go="s-b5">5 · tidyverse</a>
+  <a href="#" data-go="s-src">Источники</a>
+</div>
+
+<h2 id="s-style">Правила записи кода (стиль tidyverse)</h2>
+<div class="tw"><table>
+  <tr><th>Правило</th><th>Так</th><th>Не так</th></tr>
+  <tr><td>Присваивание стрелкой, = только для аргументов</td><td><code>x &lt;- 5</code></td><td><code>x = 5</code></td></tr>
+  <tr><td>Пробелы вокруг &lt;-, +, −, ==, &lt; …</td><td><code>z &lt;- (a + b)^2 / d</code></td><td><code>z&lt;-( a + b ) ^ 2/d</code></td></tr>
+  <tr><td>Вокруг ^ пробелов нет</td><td><code>x^2</code></td><td><code>x ^ 2</code></td></tr>
+  <tr><td>Текст в двойных кавычках</td><td><code>"Gilt"</code></td><td><code>'Gilt'</code></td></tr>
+  <tr><td>Имена маленькими буквами через _</td><td><code>mean_adg</code></td><td><code>MeanADG</code></td></tr>
+  <tr><td>Перед |&gt; пробел, после него новая строка</td><td><code>pigs |&gt;<br>&nbsp;&nbsp;filter(…)</code></td><td><code>pigs|&gt;filter(…)</code></td></tr>
+  <tr><td>Одна функция на строку в длинной цепочке</td><td>шаг на строку</td><td>пять шагов в одной строке</td></tr>
+</table></div>
+<p>Три вещи, которые ломают код на самом деле, а не только портят вид: <b>регистр</b> (Weight и weight — разные объекты), <b>десятичная точка</b> (12.5, а не 12,5) и <b>пропущенная скобка или запятая</b>. Если R ждёт продолжения, в консоли вместо <code>&gt;</code> появляется <code>+</code>: где-то не закрыта скобка или кавычка.</p>
+
+<h2 id="s-b1">Блок 1. База</h2>
+<div class="tw"><table>
+  <tr><th>Что</th><th>Код</th></tr>
+  <tr><td>Присвоить</td><td><code>w &lt;- c(98, 105, 112)</code></td></tr>
+  <tr><td>Последовательность</td><td><code>1:6</code>, <code>seq(0, 30, by = 10)</code>, <code>rep("A", 3)</code></td></tr>
+  <tr><td>Элемент по номеру</td><td><code>w[2]</code>; без первого — <code>w[-1]</code></td></tr>
+  <tr><td>Элементы по условию</td><td><code>w[w &gt; 100]</code></td></tr>
+  <tr><td>Сколько TRUE / доля TRUE</td><td><code>sum(w &gt; 100)</code> / <code>mean(w &gt; 100)</code></td></tr>
+  <tr><td>Пропуски</td><td><code>is.na(x)</code>, <code>mean(x, na.rm = TRUE)</code></td></tr>
+  <tr><td>Логарифмы</td><td><code>log()</code> — натуральный, <code>log10()</code>, <code>exp()</code></td></tr>
+  <tr><td>Пакеты</td><td><code>install.packages("dplyr")</code> один раз, <code>library(dplyr)</code> в каждой сессии</td></tr>
+</table></div>
+<p>R считает с 1, не с 0. Арифметика и сравнения работают поэлементно, цикл не нужен: <code>w * 2</code>.</p>
+
+<h2 id="s-b2">Блок 2. Таблицы и индексы</h2>
+<div class="box key"><p><b>[строки, столбцы]</b>. Пусто — «все». <code>pigs[3, ]</code> — третья строка, <code>pigs[, "adg"]</code> — столбец, <code>pigs[pigs$sex == "Gilt", ]</code> — строки по условию (не забудь запятую).</p></div>
+<div class="tw"><table>
+  <tr><th>Что</th><th>Код</th></tr>
+  <tr><td>Столбец как вектор</td><td><code>pigs$adg</code></td></tr>
+  <tr><td>Новый столбец</td><td><code>pigs$adg_kg &lt;- pigs$adg / 1000</code></td></tr>
+  <tr><td>Посмотреть</td><td><code>head()</code>, <code>str()</code>, <code>summary()</code>, <code>dim()</code></td></tr>
+  <tr><td>Частоты</td><td><code>table(pigs$sex)</code>, <code>table(pigs$sex, pigs$sick)</code></td></tr>
+  <tr><td>Группа и референт</td><td><code>factor()</code>, <code>levels()</code>, <code>relevel(x, ref = "Control")</code></td></tr>
+  <tr><td>По группам</td><td><code>tapply(pigs$adg, pigs$sex, mean)</code></td></tr>
+  <tr><td>Входит ли в список</td><td><code>pigs$diet %in% c("A", "B")</code></td></tr>
+</table></div>
+
+<h2 id="s-b3">Блок 3. Функции и модели</h2>
+<p>Своя функция: <code>f &lt;- function(x, k = 2) x * k</code>. Условие: <code>if (p &lt; 0.05) … else …</code>. Цикл: <code>for (i in 1:3) print(i)</code>.</p>
+<div class="tw"><table>
+  <tr><th>В формуле</th><th>Значит</th></tr>
+  <tr><td><code>y ~ x</code></td><td>y от x</td></tr>
+  <tr><td><code>y ~ x1 + x2</code></td><td>оба предиктора, без взаимодействия</td></tr>
+  <tr><td><code>y ~ x1 * x2</code></td><td>x1 + x2 + x1:x2 (с взаимодействием)</td></tr>
+  <tr><td><code>y ~ x + I(x^2)</code></td><td>квадрат x как отдельный предиктор</td></tr>
+  <tr><td><code>log(y) ~ x</code></td><td>Y в логарифме</td></tr>
+  <tr><td><code>y ~ g + offset(log(N))</code></td><td>пуассоновская частота на N</td></tr>
+</table></div>
+<div class="tw"><table>
+  <tr><th>Задача</th><th>Функция</th></tr>
+  <tr><td>Линейная, ANOVA</td><td><code>lm()</code>, <code>aov()</code></td></tr>
+  <tr><td>Логистическая / пуассоновская</td><td><code>glm(…, family = binomial)</code> / <code>poisson</code></td></tr>
+  <tr><td>Таблица, коэффициенты, ДИ</td><td><code>summary(m)</code>, <code>coef(m)</code>, <code>confint(m)</code></td></tr>
+  <tr><td>OR / IRR</td><td><code>exp(coef(m))</code></td></tr>
+  <tr><td>Прогноз</td><td><code>predict(m, newdata = …, interval = "prediction")</code></td></tr>
+  <tr><td>Сравнить модели</td><td><code>anova(m1, m2)</code>, <code>AIC(m1, m2)</code></td></tr>
+  <tr><td>Квантиль / p-value</td><td><code>qt()</code>, <code>qnorm()</code> / <code>pt()</code>, <code>pchisq()</code></td></tr>
+</table></div>
+
+<h2 id="s-b4">Блок 4. ggplot2</h2>
+<div class="box key"><p><b>Рецепт:</b> <code>ggplot(данные, aes(x, y, …)) + geom_…() + facet_…() + scale_…() + labs() + theme_…()</code>. Слои соединяет <b>+</b>, а не |&gt;.</p></div>
+<ul>
+  <li><b>Внутри aes()</b> — то, что зависит от столбца: <code>aes(color = sex)</code>. <b>Вне aes()</b> — константа: <code>geom_point(color = "blue")</code>.</li>
+  <li>geom выбирают по типу данных: два числа — <code>geom_point</code>; одно число — <code>geom_histogram</code> / <code>geom_density</code>; число по группам — <code>geom_boxplot</code> / <code>geom_jitter</code>; число строк в группе — <code>geom_bar</code>; готовая высота — <code>geom_col</code>.</li>
+  <li><code>geom_smooth(method = "lm")</code> — прямая регрессии с полосой ДИ.</li>
+  <li><code>xlim()</code> выкидывает точки, <code>coord_cartesian(xlim = …)</code> только приближает.</li>
+  <li>Число как группа: <code>factor(parity)</code>.</li>
+</ul>
+
+<h2 id="s-b5">Блок 5. tidyverse</h2>
+<div class="tw"><table>
+  <tr><th>Глагол</th><th>Что делает</th></tr>
+  <tr><td><code>filter()</code></td><td>отбирает <b>строки</b> по условию (запятая = И, | = ИЛИ)</td></tr>
+  <tr><td><code>select()</code></td><td>отбирает <b>столбцы</b> (минус — выкинуть)</td></tr>
+  <tr><td><code>mutate()</code></td><td>добавляет или меняет столбцы</td></tr>
+  <tr><td><code>arrange()</code></td><td>сортирует строки; <code>desc()</code> — по убыванию</td></tr>
+  <tr><td><code>summarise()</code></td><td>сворачивает в одну строку (на группу)</td></tr>
+  <tr><td><code>group_by()</code></td><td>следующие шаги считаются по группам</td></tr>
+  <tr><td><code>count()</code></td><td>число строк в группах</td></tr>
+  <tr><td><code>left_join()</code></td><td>добавляет столбцы другой таблицы по ключу</td></tr>
+  <tr><td><code>pivot_longer()</code> / <code>pivot_wider()</code></td><td>широкая ↔ длинная таблица</td></tr>
+</table></div>
+<p><code>x |&gt; f(y)</code> — то же, что <code>f(x, y)</code>. Читай пайп словом «затем». Ни один глагол не меняет таблицу, пока не присвоишь результат: <code>pigs &lt;- pigs |&gt; mutate(…)</code>. <code>|&gt;</code> встроен в R, <code>%&gt;%</code> из пакета magrittr: в простых случаях они одинаковы.</p>
+
+<h2 id="s-src">Источники</h2>
+<p>Упражнения и правила составлены по этим материалам. Все книги бесплатны онлайн.</p>
+<ul>
+  <li><a href="https://rstudio-education.github.io/hopr/" target="_blank" rel="noopener">Hands-On Programming with R</a> (Grolemund) — блоки 1–3: объекты, векторы, индексы, функции, циклы.</li>
+  <li><a href="https://cran.r-project.org/doc/manuals/r-release/R-intro.html" target="_blank" rel="noopener">An Introduction to R</a> (R Core Team) — блоки 1–3, формулы моделей (гл. 11).</li>
+  <li><a href="https://r4ds.hadley.nz/" target="_blank" rel="noopener">R for Data Science, 2-е изд.</a> (Wickham, Çetinkaya-Rundel, Grolemund) — блоки 4–5; глава <a href="https://r4ds.hadley.nz/workflow-style" target="_blank" rel="noopener">Workflow: code style</a>.</li>
+  <li><a href="https://ggplot2-book.org/" target="_blank" rel="noopener">ggplot2: Elegant Graphics for Data Analysis, 3-е изд.</a> (Wickham, Navarro, Pedersen) — блок 4.</li>
+  <li><a href="https://style.tidyverse.org/" target="_blank" rel="noopener">The tidyverse style guide</a>, раздел <a href="https://style.tidyverse.org/pipes.html" target="_blank" rel="noopener">Pipes</a> — правила записи.</li>
+  <li><a href="https://posit.co/resources/cheatsheets/" target="_blank" rel="noopener">Шпаргалки Posit</a> по dplyr, tidyr, ggplot2 (есть русские переводы) — блоки 4–5.</li>
+</ul>

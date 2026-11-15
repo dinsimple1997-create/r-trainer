@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Тренажёр выводов R</title>
+<title>Тренажёр R</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -108,30 +108,97 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
 .toc a{font-size:13px;color:var(--accent);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 10px}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion: no-preference){.opt,.btn,.chip{transition:background .15s,border-color .15s}}
+/* v1.1: menu, methods, syntax trainer */
+.brand{align-items:center}
+.brand h1{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.menu-btn{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:500;border-radius:10px;padding:5px 10px;cursor:pointer}
+.prog.p4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:560px){.prog.p4{grid-template-columns:repeat(2,1fr)}}
+.home-lead{margin:18px 0 10px;color:var(--muted)}
+.tiles{display:grid;gap:10px}
+.tile{display:block;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.tile:hover{border-color:var(--accent)}
+.tile .t-k{font-size:12px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.04em}
+.tile .t-h{font-size:17px;font-weight:600;margin:2px 0 4px}
+.tile .t-s{font-size:14px;color:var(--muted)}
+.tile .t-p{font-size:13px;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums}
+.tile .bar{margin-top:4px}
+.tile.soon{opacity:.65;border-style:dashed}
+.syn-step{font-size:12.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:14px 16px 4px}
+.syn-setup{padding:0 16px;font-size:13.5px;color:var(--muted)}
+.console.code{font-size:14px;line-height:1.5}
+.kbtns{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0}
+.kbtn{font-family:var(--font-mono);font-size:15px;min-width:40px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);cursor:pointer;touch-action:manipulation}
+.typed{display:block;width:calc(100% - 32px);margin:8px 16px 0;font-family:var(--font-mono);font-size:15px;line-height:1.45;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);resize:vertical}
+.syn-row{padding:0 16px}
+.diff{margin:8px 16px 0;font-size:14px}
+.diff .ln{font-family:var(--font-mono);font-size:13.5px;background:var(--bg);border-radius:8px;padding:6px 8px;margin-top:4px;overflow-x:auto;white-space:pre}
+.diff mark{background:var(--bad-soft);color:var(--bad);border-bottom:2px solid var(--bad);padding:0 1px}
+.syn-q{padding:0 16px 16px}
+.syn-q .qt{margin-bottom:2px}
+.locked{margin:6px 16px 16px;font-size:14px;color:var(--muted)}
+.outbox{display:none;margin-top:10px}
+.outbox.on{display:block}
+.outbox .k{font-size:12px;color:var(--muted)}
+.outbox .console{border-radius:10px;font-size:13px}
+.guide a{color:var(--accent)}
 </style>
 </head>
 <body>
 <header class="top">
   <div class="topin">
-    <div class="brand"><h1>Тренажёр выводов R</h1><span class="stat" id="stat">0 / 2500 вопросов</span></div>
-    <div class="tabs" role="tablist">
+    <div class="brand">
+      <button class="menu-btn" id="menu-btn" type="button" aria-label="Открыть меню">☰ Меню</button>
+      <h1 id="title">Тренажёр R</h1>
+      <span class="stat" id="stat"></span>
+    </div>
+    <div class="tabs" role="tablist" id="tabs-out">
       <button class="tab" role="tab" id="tab-train" aria-selected="true">Тренировка</button>
-      <button class="tab" role="tab" id="tab-guide" aria-selected="false">Как читать вывод</button>
+      <button class="tab" role="tab" id="tab-guide" aria-selected="false">Как читать</button>
+      <button class="tab" role="tab" id="tab-methods" aria-selected="false">Методы</button>
+    </div>
+    <div class="tabs" role="tablist" id="tabs-syn" hidden>
+      <button class="tab" role="tab" id="tab-syntax" aria-selected="true">Упражнения</button>
+      <button class="tab" role="tab" id="tab-synref" aria-selected="false">Правила и источники</button>
     </div>
     <div class="chips" id="chips-cat" aria-label="Тип модели"></div>
     <div class="chips" id="chips-sub" aria-label="Подтип"></div>
+    <div class="chips" id="chips-syn" aria-label="Блок" hidden></div>
   </div>
 </header>
 
 <main class="wrap">
-  <section id="view-train">
-    <div class="prog" id="prog"></div>
+  <section id="view-home" hidden>
+    <p class="home-lead">Выбери раздел. Прогресс сохраняется на этом устройстве.</p>
+    <div class="tiles">
+      <a class="tile" href="#train"><div class="t-k">Выводы R</div><div class="t-h">Тренажёр выводов R</div>
+        <div class="t-s">660 выводов и 3300 вопросов: ANOVA, линейная и множественная, логистическая, пуассоновская регрессия</div>
+        <div class="t-p" id="home-out"></div></a>
+      <a class="tile" href="#methods"><div class="t-k">Теория</div><div class="t-h">Методы: объяснения</div>
+        <div class="t-s">Простыми словами и на примерах со свиньями: что считает каждая регрессия и как читать её числа</div></a>
+      <a class="tile" href="#guide"><div class="t-k">Шпаргалка</div><div class="t-h">Как читать вывод</div>
+        <div class="t-s">Короткие правила к каждому виду вывода R и калькулятор</div></a>
+      <a class="tile" href="#syntax"><div class="t-k">Код</div><div class="t-h">Тренажёр синтаксиса R</div>
+        <div class="t-s">__SYNCOUNT__ упражнений в 5 блоках: база, таблицы, функции и модели, ggplot2, tidyverse. Перепечатай код и выбери, что он делает</div>
+        <div class="t-p" id="home-syn"></div></a>
+      <div class="tile soon"><div class="t-k">Скоро</div><div class="t-h">Смешанные модели</div>
+        <div class="t-s">Следующий раздел, когда пройдём эти</div></div>
+    </div>
+  </section>
+  <section id="view-train" hidden>
+    <div class="prog p4" id="prog"></div>
     <div id="card"></div>
   </section>
   <section id="view-guide" class="guide" hidden>__GUIDE__</section>
+  <section id="view-methods" class="guide" hidden>__METHODS__</section>
+  <section id="view-syntax" hidden>
+    <div class="prog" id="syn-prog"></div>
+    <div id="syn-card"></div>
+  </section>
+  <section id="view-synref" class="guide" hidden>__SYNREF__</section>
 </main>
 
-<nav class="bottom" id="nav">
+<nav class="bottom" id="nav" hidden>
   <div class="navin">
     <button class="btn ghost" id="prev" aria-label="Предыдущий пример">←</button>
     <input class="jump" id="jump" inputmode="numeric" aria-label="Номер примера" placeholder="№">
@@ -141,22 +208,32 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
 </nav>
 
 <script type="application/json" id="data">__DATA__</script>
+<script type="application/json" id="syndata">__SYNDATA__</script>
 <script>
 (function(){
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function chip(label, pressed, onclick){ var b=document.createElement('button'); b.className='chip'; b.type='button'; b.textContent=label; b.setAttribute('aria-pressed', pressed ? 'true':'false'); b.onclick=onclick; return b; }
+  function pbox(k, a, b){ var pct = b ? Math.round(100*a/b) : 0; var d=document.createElement('div'); d.className='pbox'; d.innerHTML='<div class="k">'+k+'</div><div class="v">'+a+' <span class="k">из '+b+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div>'; return d; }
+
+  /* =================== Output trainer =================== */
   var EX = JSON.parse(document.getElementById('data').textContent);
-  var CATS = [["all","Все"],["anova","ANOVA"],["lin","Линейная"],["logit","Логистическая"]];
+  var CATS = [["all","Все"],["anova","ANOVA"],["lin","Линейная"],["logit","Логистическая"],["pois","Пуассоновская"]];
   var SUBS = {
     anova:[["aov","summary(aov)"],["lmfac","lm с фактором"],["tukey","TukeyHSD"]],
-    lin:[["lin","Y ~ X"],["logy","log(Y) ~ X"],["logx","Y ~ log(X)"],["loglog","log(Y) ~ log(X)"]],
-    logit:[["g2","2 группы"],["gx","X непрерывный"],["g3","3 группы"]]
+    lin:[["lin","Y ~ X"],["mlr","Множественная"],["logy","log(Y) ~ X"],["logx","Y ~ log(X)"],["loglog","log(Y) ~ log(X)"]],
+    logit:[["g2","2 группы"],["gx","X непрерывный"],["g3","3 группы"]],
+    pois:[["p2","2 группы + offset"],["p3","3 группы + offset"],["px","X непрерывный"]]
   };
-  var SUBNAME = {aov:"ANOVA",lmfac:"lm с фактором",tukey:"TukeyHSD",lin:"Y ~ X",logy:"log(Y) ~ X",logx:"Y ~ log(X)",loglog:"log-log",g2:"Логистическая · 2 группы",gx:"Логистическая · X",g3:"Логистическая · 3 группы"};
+  var SUBNAME = {aov:"ANOVA",lmfac:"lm с фактором",tukey:"TukeyHSD",lin:"Y ~ X",mlr:"Множественная",logy:"log(Y) ~ X",logx:"Y ~ log(X)",loglog:"log-log",
+    g2:"Логистическая · 2 группы",gx:"Логистическая · X",g3:"Логистическая · 3 группы",p2:"Пуассоновская · 2 группы",p3:"Пуассоновская · 3 группы",px:"Пуассоновская · X"};
   var KEY = "r-trainer-v1";
   var st = {cat:"all", sub:"", only:"", pos:{}, ans:{}};
   try { var s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s) { st.cat = s.cat || "all"; st.sub = s.sub || ""; st.only = s.only || ""; st.pos = s.pos || {}; st.ans = s.ans || {}; } } catch(e) {}
+  if (!CATS.some(function(c){ return c[0]===st.cat; })) { st.cat="all"; st.sub=""; }
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e) {} }
 
   var byId = {}; EX.forEach(function(e){ byId[e.id] = e; });
+  var TOTALQ = 0; EX.forEach(function(e){ TOTALQ += e.qs.length; });
   function list(){
     return EX.filter(function(e){
       if (st.cat !== "all" && e.cat !== st.cat) return false;
@@ -171,8 +248,6 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
   function hasWrong(e){ for (var i=0;i<e.qs.length;i++){ var a = st.ans[qkey(e,i)]; if (a && a.miss) return true; } return false; }
   function filterKey(){ return st.cat + "|" + st.sub + "|" + st.only; }
 
-  // chips
-  function chip(label, pressed, onclick){ var b=document.createElement('button'); b.className='chip'; b.type='button'; b.textContent=label; b.setAttribute('aria-pressed', pressed ? 'true':'false'); b.onclick=onclick; return b; }
   function renderChips(){
     var c1 = document.getElementById('chips-cat'); c1.innerHTML='';
     CATS.forEach(function(c){ c1.appendChild(chip(c[1], st.cat===c[0], function(){ st.cat=c[0]; st.sub=""; save(); renderAll(); })); });
@@ -180,33 +255,29 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     c1.appendChild(chip("Мои ошибки", st.only==="wrong", function(){ st.only = st.only==="wrong" ? "" : "wrong"; save(); renderAll(); }));
     var c2 = document.getElementById('chips-sub'); c2.innerHTML='';
     if (st.cat !== "all") {
-      c2.hidden = false;
       c2.appendChild(chip("Все подтипы", !st.sub, function(){ st.sub=""; save(); renderAll(); }));
       SUBS[st.cat].forEach(function(s){ c2.appendChild(chip(s[1], st.sub===s[0], function(){ st.sub=s[0]; save(); renderAll(); })); });
-    } else { c2.hidden = true; }
+    }
+    c2.hidden = (route !== 'train') || st.cat === 'all';
   }
-
-  // progress
+  function outSolved(){
+    var solved=0, per={anova:[0,0],lin:[0,0],logit:[0,0],pois:[0,0]};
+    EX.forEach(function(e){ e.qs.forEach(function(q,i){ var a=st.ans[qkey(e,i)]; if(a&&a.ok){ solved++; per[e.cat][0]++; } per[e.cat][1]++; }); });
+    return {solved:solved, per:per};
+  }
   function renderProg(){
-    var tot=0, solved=0, first=0;
-    var per = {anova:[0,0],lin:[0,0],logit:[0,0]};
-    EX.forEach(function(e){ e.qs.forEach(function(q,i){ tot++; var a=st.ans[qkey(e,i)]; if(a&&a.ok){ solved++; per[e.cat][0]++; if(!a.miss) first++; } per[e.cat][1]++; }); });
-    document.getElementById('stat').textContent = solved + " / " + tot + " вопросов";
+    var r = outSolved();
+    if (route==='train' || route==='guide' || route==='methods') document.getElementById('stat').textContent = r.solved + " / " + TOTALQ;
     var p = document.getElementById('prog'); p.innerHTML='';
-    [["anova","ANOVA"],["lin","Линейная"],["logit","Логистическая"]].forEach(function(c){
-      var d=per[c[0]]; var pct = d[1] ? Math.round(100*d[0]/d[1]) : 0;
-      var b=document.createElement('div'); b.className='pbox';
-      b.innerHTML='<div class="k">'+c[1]+'</div><div class="v">'+d[0]+' <span class="k">из '+d[1]+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div>';
-      p.appendChild(b);
-    });
+    [["anova","ANOVA"],["lin","Линейная"],["logit","Логистич."],["pois","Пуассон."]].forEach(function(c){ p.appendChild(pbox(c[1], r.per[c[0]][0], r.per[c[0]][1])); });
   }
 
   function consoleHTML(text){
     return text.split("\n").map(function(l){
-      var esc = l.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-      if (l.indexOf("> ")===0) return '<span class="pr">'+esc+'</span>';
-      if (l.indexOf("Signif. codes")===0 || l==="---") return '<span class="dim">'+esc+'</span>';
-      return esc;
+      var e = esc(l);
+      if (l.indexOf("> ")===0 || l.indexOf("+ ")===0) return '<span class="pr">'+e+'</span>';
+      if (l.indexOf("Signif. codes")===0 || l==="---") return '<span class="dim">'+e+'</span>';
+      return e;
     }).join("\n");
   }
   function parseNum(v){
@@ -215,7 +286,6 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     return parseFloat(v);
   }
 
-  var cur = null;
   function current(){
     var L = list(); if (!L.length) return null;
     var k = filterKey(); var id = st.pos[k];
@@ -231,10 +301,10 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
   function renderCard(scroll){
     var c = current(); var box = document.getElementById('card');
     if (!c){ box.innerHTML = '<div class="card empty">Здесь пока пусто: под этот фильтр нет примеров. Сними «Нерешённые» или «Мои ошибки».</div>'; return; }
-    var e = c.e; cur = e;
+    var e = c.e;
     var h = '<article class="card">';
     h += '<div class="card-h"><span class="idx">№ '+e.id+' · '+(c.idx+1)+' из '+c.L.length+' в подборке</span><span class="tag">'+SUBNAME[e.sub]+'</span></div>';
-    h += '<h2>'+e.title.replace(/</g,"&lt;")+'</h2>';
+    h += '<h2>'+esc(e.title)+'</h2>';
     h += '<div class="intro">'+e.intro+'</div>';
     h += '<div class="zoom"><button type="button" id="zm">A−</button><button type="button" id="zp">A+</button></div>';
     h += '<pre class="console" id="con" style="font-size:'+fontSize+'px">'+consoleHTML(e.console)+'</pre>';
@@ -269,7 +339,7 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
   function bindCard(e){
     document.getElementById('zm').onclick=function(){ fontSize=Math.max(9,fontSize-1); document.getElementById('con').style.fontSize=fontSize+'px'; };
     document.getElementById('zp').onclick=function(){ fontSize=Math.min(17,fontSize+1); document.getElementById('con').style.fontSize=fontSize+'px'; };
-    document.querySelectorAll('.q').forEach(function(div){
+    document.querySelectorAll('#card .q').forEach(function(div){
       var i = +div.getAttribute('data-i'); var q = e.qs[i]; var k = qkey(e,i);
       var ex = div.querySelector('.ex');
       if (q.t === 'mc') {
@@ -306,33 +376,186 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
       }
     });
   }
-
-  function setTab(t){
-    var g = t === 'guide';
-    document.getElementById('tab-train').setAttribute('aria-selected', g?'false':'true');
-    document.getElementById('tab-guide').setAttribute('aria-selected', g?'true':'false');
-    document.getElementById('view-train').hidden = g;
-    document.getElementById('view-guide').hidden = !g;
-    document.getElementById('nav').hidden = g;
-    document.getElementById('chips-cat').hidden = g;
-    document.getElementById('chips-sub').hidden = g || st.cat === 'all';
-    try { if ((location.hash === '#guide') !== g) history.replaceState(null, '', g ? '#guide' : '#train'); } catch(e) {}
-  }
   function renderAll(scroll){ renderChips(); renderProg(); renderCard(scroll); }
 
-  document.getElementById('tab-train').onclick = function(){ setTab('train'); window.scrollTo({top:0}); };
-  document.getElementById('tab-guide').onclick = function(){ setTab('guide'); window.scrollTo({top:0}); };
-  document.getElementById('prev').onclick = function(){ go(-1); };
-  document.getElementById('next').onclick = function(){ go(1); };
-  document.getElementById('rand').onclick = goRandom;
-  var jump = document.getElementById('jump');
-  jump.addEventListener('keydown', function(ev){ if (ev.key==='Enter'){ var n=parseInt(jump.value,10); if(goId(n)){ jump.value=''; jump.blur(); } } });
-  jump.addEventListener('change', function(){ var n=parseInt(jump.value,10); if(goId(n)){ jump.value=''; } });
-  document.querySelectorAll('.guide a[data-go]').forEach(function(a){ a.addEventListener('click', function(ev){ ev.preventDefault(); var el=document.getElementById(a.getAttribute('data-go')); if(el) el.scrollIntoView(); }); });
-  window.addEventListener('hashchange', function(){ setTab(location.hash==='#guide'?'guide':'train'); });
+  /* =================== Syntax trainer =================== */
+  var SD = JSON.parse(document.getElementById('syndata').textContent);
+  var SX = SD.ex, BL = SD.blocks;
+  var sById = {}; SX.forEach(function(x){ sById[x.id] = x; });
+  var SKEY = "r-syntax-v1";
+  var ss = {blk:0, only:"", pos:{}, ans:{}};
+  try { var s2 = JSON.parse(localStorage.getItem(SKEY) || "null"); if (s2) { ss.blk = s2.blk || 0; ss.only = s2.only || ""; ss.pos = s2.pos || {}; ss.ans = s2.ans || {}; } } catch(e) {}
+  function ssave(){ try { localStorage.setItem(SKEY, JSON.stringify(ss)); } catch(e) {} }
+  function slist(){
+    return SX.filter(function(x){
+      if (ss.blk && x.b !== ss.blk) return false;
+      var a = ss.ans[x.id];
+      if (ss.only === "todo") return !(a && a.ok);
+      if (ss.only === "wrong") return !!(a && a.miss);
+      return true;
+    });
+  }
+  function skey(){ return ss.blk + "|" + ss.only; }
+  function scur(){
+    var L = slist(); if (!L.length) return null;
+    var id = ss.pos[skey()]; var idx = L.findIndex(function(x){ return x.id===id; });
+    if (idx < 0) { idx = 0; ss.pos[skey()] = L[0].id; }
+    return {L:L, idx:idx, x:L[idx]};
+  }
+  function sgo(d){ var c=scur(); if(!c) return; var i=(c.idx+d+c.L.length)%c.L.length; ss.pos[skey()]=c.L[i].id; ssave(); renderSynCard(true); }
+  function sgoRandom(){ var c=scur(); if(!c) return; var pool=c.L.filter(function(x){ var a=ss.ans[x.id]; return !(a&&a.ok); }); if(!pool.length) pool=c.L; ss.pos[skey()]=pool[Math.floor(Math.random()*pool.length)].id; ssave(); renderSynCard(true); }
+  function sgoId(n){ if(!sById[n]) return false; ss.blk=0; ss.only=""; ss.pos[skey()]=n; ssave(); renderSynAll(true); return true; }
 
-  renderAll(false);
-  setTab(location.hash === '#guide' ? 'guide' : 'train');
+  function renderSynChips(){
+    var c = document.getElementById('chips-syn'); c.innerHTML='';
+    c.appendChild(chip("Все блоки", !ss.blk, function(){ ss.blk=0; ssave(); renderSynAll(); }));
+    BL.forEach(function(b){ c.appendChild(chip(b.n+" · "+b.name, ss.blk===b.n, function(){ ss.blk=b.n; ssave(); renderSynAll(); })); });
+    c.appendChild(chip("Нерешённые", ss.only==="todo", function(){ ss.only = ss.only==="todo"?"":"todo"; ssave(); renderSynAll(); }));
+    c.appendChild(chip("Мои ошибки", ss.only==="wrong", function(){ ss.only = ss.only==="wrong"?"":"wrong"; ssave(); renderSynAll(); }));
+  }
+  function synStats(){
+    var typed=0, ok=0, first=0, tot=SX.length;
+    SX.forEach(function(x){ var a=ss.ans[x.id]; if(!a) return; if(a.typed===1) typed++; if(a.ok){ ok++; if(!a.miss) first++; } });
+    return {typed:typed, ok:ok, first:first, tot:tot};
+  }
+  function renderSynProg(){
+    var r = synStats();
+    if (route==='syntax' || route==='synref') document.getElementById('stat').textContent = r.ok + " / " + r.tot;
+    var p = document.getElementById('syn-prog'); p.innerHTML='';
+    p.appendChild(pbox("Перепечатано", r.typed, r.tot));
+    p.appendChild(pbox("Решено", r.ok, r.tot));
+    p.appendChild(pbox("С первой попытки", r.first, r.tot));
+  }
+  // multi-character operators are protected before spaces are removed: "x < - 5" must not match "x <- 5"
+  var OPS = [["%>%",""],["%in%",""],["<-",""],["|>",""],["==",""],["!=",""],["<=",""],[">=",""],["->",""],["&&",""],["||",""]];
+  function norm(s){
+    s = String(s).replace(/[“”„«»″]/g,'"').replace(/[‘’‚′]/g,"'").replace(/'/g,'"')
+      .replace(/[–—−]/g,'-').replace(/…/g,'...');
+    OPS.forEach(function(o){ s = s.split(o[0]).join(o[1]); });
+    return s.replace(/\s+/g,'');
+  }
+  function unop(s){ OPS.forEach(function(o){ s = s.split(o[1]).join(o[0]); }); return s; }
+  function ctx(s, i){ var a=Math.max(0,i-10), b=Math.min(s.length,i+10); return (a>0?'…':'')+esc(unop(s.slice(a,i)))+'<mark>'+(i<s.length?esc(unop(s[i])):'&nbsp;')+'</mark>'+esc(unop(s.slice(i+1,b)))+(b<s.length?'…':''); }
+  function compare(code, typed){
+    var a=norm(code), b=norm(typed);
+    if (!b) return {st:'empty'};
+    if (a===b) return {st:'ok'};
+    var i=0; while(i<a.length && i<b.length && a[i]===b[i]) i++;
+    if (a.toLowerCase()===b.toLowerCase()) {
+      var j=0; while(j<a.length && a[j]===b[j]) j++;
+      return {st:'case', html:'Почти: отличаются только большие и маленькие буквы. R их различает.<div class="ln">Нужно:  '+ctx(a,j)+'</div><div class="ln">У тебя: '+ctx(b,j)+'</div>'};
+    }
+    if (i===b.length) return {st:'short', html:'Пока совпадает, но код короче. Дальше должно идти:<div class="ln">'+esc(unop(a.slice(i, i+24)))+(a.length>i+24?'…':'')+'</div>'};
+    if (i===a.length) return {st:'long', html:'Всё совпало, но в конце лишнее:<div class="ln">'+esc(unop(b.slice(i, i+24)))+'</div>'};
+    var op = OPS.filter(function(o){ return o[1]===a[i]; })[0];
+    var hint = op ? '<div>Оператор <code>'+esc(op[0])+'</code> пишется слитно, без пробела внутри.</div>' : '';
+    return {st:'diff', html:'Первое отличие (пробелы не считаются):<div class="ln">Нужно:  '+ctx(a,i)+'</div><div class="ln">У тебя: '+ctx(b,i)+'</div>'+hint};
+  }
+  var KEYS = [["<-"," <- "],["|>"," |>\n"],["%>%"," %>%\n"],["~"," ~ "],["$","$"],['"','"'],["(","("],[")",")"],["[","["],["]","]"],["{","{"],["}","}"],[",",", "],["=", " = "],["_","_"],["+"," + "],["#","# "]];
+
+  function renderSynCard(scroll){
+    var c = scur(); var box = document.getElementById('syn-card');
+    if (!c){ box.innerHTML = '<div class="card empty">Под этот фильтр упражнений нет. Сними «Нерешённые» или «Мои ошибки».</div>'; return; }
+    var x = c.x, a = ss.ans[x.id] || {}, B = BL[x.b-1];
+    var open = a.typed===1 || a.typed===2 || a.ok || (a.picked && a.picked.length);
+    var lines = x.code.split("\n").length;
+    var h = '<article class="card">';
+    h += '<div class="card-h"><span class="idx">№ '+x.id+' · '+(c.idx+1)+' из '+c.L.length+'</span><span class="tag">Блок '+x.b+' · '+esc(B.name)+'</span><span class="tag">'+esc(x.t)+'</span></div>';
+    h += '<div class="syn-setup">'+esc(B.setup)+'</div>';
+    h += '<div class="syn-step">1 · Перепечатай код</div>';
+    h += '<pre class="console code">'+esc(x.code)+'</pre>';
+    h += '<div class="kbtns">'+KEYS.map(function(k,i){ return '<button type="button" class="kbtn" data-k="'+i+'" aria-label="Вставить '+esc(k[0])+'">'+esc(k[0])+'</button>'; }).join('')+'</div>';
+    h += '<textarea class="typed" id="typed" rows="'+Math.max(2,lines+1)+'" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Набери код здесь" aria-label="Поле для набора кода"></textarea>';
+    h += '<div class="syn-row"><div class="row"><button type="button" class="btn" id="tchk">Проверить ввод</button><button type="button" class="btn ghost" id="tskip">Пропустить</button>'+
+         '<span class="res'+(a.typed===1?' ok':'')+'" id="tres">'+(a.typed===1?'✓ Перепечатано':'')+'</span></div></div>';
+    h += '<div class="diff" id="tdiff"></div>';
+    h += '<div class="syn-step">2 · '+esc(x.q)+'</div>';
+    h += '<div class="locked" id="lock"'+(open?' hidden':'')+'>Сначала перепечатай код и нажми «Проверить ввод» или «Пропустить».</div>';
+    h += '<div class="syn-q" id="sq"'+(open?'':' hidden')+'><div class="opts">';
+    x.o.forEach(function(o,j){ var oc=''; if (a.picked && a.picked.indexOf(j)>=0) oc = (j===x.a)?' ok':' bad'; h += '<button type="button" class="opt'+oc+'" data-j="'+j+'">'+esc(o)+'</button>'; });
+    var shown = a.picked && a.picked.length;
+    h += '</div><div class="ex'+(shown?' on':'')+'" id="sex">'+x.ex+'</div>';
+    if (x.out) h += '<div class="outbox'+(a.ok?' on':'')+'" id="sout"><div class="k">R напечатает:</div><pre class="console">'+esc(x.out)+'</pre></div>';
+    h += '</div></article>';
+    box.innerHTML = h;
+    bindSyn(x);
+    if (scroll) window.scrollTo({top:0});
+  }
+  function bindSyn(x){
+    var ta = document.getElementById('typed'), res = document.getElementById('tres'), diff = document.getElementById('tdiff');
+    function unlock(){ document.getElementById('lock').hidden = true; document.getElementById('sq').hidden = false; }
+    document.querySelectorAll('.kbtn').forEach(function(b){
+      function ins(ev){ if (ev) ev.preventDefault(); var t = KEYS[+b.getAttribute('data-k')][1]; var s0=ta.selectionStart, s1=ta.selectionEnd; ta.value = ta.value.slice(0,s0)+t+ta.value.slice(s1); var p=s0+t.length; ta.focus(); try{ ta.setSelectionRange(p,p); }catch(e){} }
+      b.addEventListener('pointerdown', ins);
+      b.addEventListener('keydown', function(ev){ if (ev.key==='Enter' || ev.key===' ') ins(ev); });
+    });
+    document.getElementById('tchk').onclick = function(){
+      var r = compare(x.code, ta.value), a = ss.ans[x.id] || {};
+      if (r.st==='empty'){ res.className='res bad'; res.textContent='Поле пустое'; diff.innerHTML=''; return; }
+      if (r.st==='ok'){ a.typed = 1; res.className='res ok'; res.textContent='✓ Совпадает'; diff.innerHTML=''; unlock(); }
+      else { if (a.typed!==1) a.typed = a.typed || 0; res.className='res bad'; res.textContent='✗ Есть отличие'; diff.innerHTML = r.html; }
+      ss.ans[x.id] = a; ssave(); renderSynProg();
+    };
+    document.getElementById('tskip').onclick = function(){ var a = ss.ans[x.id] || {}; if (a.typed!==1) a.typed = 2; ss.ans[x.id]=a; ssave(); unlock(); document.getElementById('sq').scrollIntoView({block:'nearest'}); };
+    document.querySelectorAll('#sq .opt').forEach(function(b){
+      b.onclick = function(){
+        var j = +b.getAttribute('data-j'); var a = ss.ans[x.id] || {}; a.picked = a.picked || [];
+        if (a.picked.indexOf(j)<0) a.picked.push(j);
+        document.getElementById('sex').classList.add('on');
+        if (j===x.a){ a.ok = true; b.classList.add('ok'); var o=document.getElementById('sout'); if(o) o.classList.add('on'); }
+        else { if (!a.ok) a.miss = true; b.classList.add('bad'); }
+        ss.ans[x.id]=a; ssave(); renderSynProg();
+      };
+    });
+  }
+  function renderSynAll(scroll){ renderSynChips(); renderSynProg(); renderSynCard(scroll); }
+
+  /* =================== Router =================== */
+  var ROUTES = ['home','train','guide','methods','syntax','synref'];
+  var TITLES = {home:'Тренажёр R', train:'Тренажёр выводов R', guide:'Тренажёр выводов R', methods:'Тренажёр выводов R', syntax:'Тренажёр синтаксиса R', synref:'Тренажёр синтаксиса R'};
+  var route = 'home';
+  function renderHome(){
+    var r = outSolved(), s = synStats();
+    document.getElementById('home-out').innerHTML = 'Решено '+r.solved+' из '+TOTALQ+'<div class="bar"><i style="width:'+Math.round(100*r.solved/TOTALQ)+'%"></i></div>';
+    document.getElementById('home-syn').innerHTML = 'Решено '+s.ok+' из '+s.tot+' · перепечатано '+s.typed+'<div class="bar"><i style="width:'+Math.round(100*s.ok/s.tot)+'%"></i></div>';
+    document.getElementById('stat').textContent = '';
+  }
+  function show(r, noScroll){
+    if (ROUTES.indexOf(r) < 0) r = 'home';
+    route = r;
+    ROUTES.forEach(function(x){ document.getElementById('view-'+x).hidden = (x !== r); });
+    var out = (r==='train'||r==='guide'||r==='methods'), syn = (r==='syntax'||r==='synref');
+    document.getElementById('tabs-out').hidden = !out;
+    document.getElementById('tabs-syn').hidden = !syn;
+    ['train','guide','methods'].forEach(function(t){ document.getElementById('tab-'+t).setAttribute('aria-selected', r===t?'true':'false'); });
+    ['syntax','synref'].forEach(function(t){ document.getElementById('tab-'+t).setAttribute('aria-selected', r===t?'true':'false'); });
+    document.getElementById('chips-cat').hidden = (r !== 'train');
+    document.getElementById('chips-syn').hidden = (r !== 'syntax');
+    document.getElementById('nav').hidden = !(r==='train' || r==='syntax');
+    document.getElementById('menu-btn').hidden = (r==='home');
+    document.getElementById('title').textContent = TITLES[r];
+    document.getElementById('jump').setAttribute('aria-label', r==='syntax' ? 'Номер упражнения' : 'Номер примера');
+    if (r==='home') renderHome();
+    if (out) renderAll(false);
+    if (syn) renderSynAll(false);
+    try { if (location.hash !== '#'+r) history.replaceState(null, '', '#'+r); } catch(e) {}
+    if (!noScroll) window.scrollTo({top:0});
+  }
+  function hashRoute(){ var h = (location.hash||'').replace('#',''); return ROUTES.indexOf(h)>=0 ? h : 'home'; }
+
+  document.getElementById('menu-btn').onclick = function(){ show('home'); };
+  ['train','guide','methods','syntax','synref'].forEach(function(t){ document.getElementById('tab-'+t).onclick = function(){ show(t); }; });
+  document.getElementById('prev').onclick = function(){ route==='syntax' ? sgo(-1) : go(-1); };
+  document.getElementById('next').onclick = function(){ route==='syntax' ? sgo(1) : go(1); };
+  document.getElementById('rand').onclick = function(){ route==='syntax' ? sgoRandom() : goRandom(); };
+  var jump = document.getElementById('jump');
+  function doJump(){ var n=parseInt(jump.value,10); var ok = route==='syntax' ? sgoId(n) : goId(n); if (ok){ jump.value=''; jump.blur(); } }
+  jump.addEventListener('keydown', function(ev){ if (ev.key==='Enter') doJump(); });
+  jump.addEventListener('change', doJump);
+  document.querySelectorAll('.guide a[data-go]').forEach(function(a){ a.addEventListener('click', function(ev){ ev.preventDefault(); var el=document.getElementById(a.getAttribute('data-go')); if(el) el.scrollIntoView(); }); });
+  window.addEventListener('hashchange', function(){ var r = hashRoute(); if (r !== route) show(r); });
+
+  show(hashRoute(), true);
 })();
 </script>
 </body>

@@ -1,8 +1,8 @@
-import json, os, shutil
+import json, os, re, shutil
 from PIL import Image, ImageDraw, ImageFont
 
-VERSION = "1.0"
-DATE = "14.11.2026"
+VERSION = "1.1"
+DATE = "15.11.2026"
 import sys
 OUT = sys.argv[1] if len(sys.argv) > 1 else ".."
 os.makedirs(OUT, exist_ok=True)
@@ -36,9 +36,9 @@ icon(180, maskable=True).save(f"{OUT}/apple-touch-icon.png")
 
 # ---------- manifest ----------
 manifest = {
-    "name": "Тренажёр выводов R",
+    "name": "Тренажёр R",
     "short_name": "R-тренажёр",
-    "description": "500 выводов R (ANOVA, линейная и логистическая регрессия) с вопросами и разборами.",
+    "description": "Тренажёр выводов R (ANOVA, линейная, множественная, логистическая, пуассоновская регрессия), объяснения методов и тренажёр синтаксиса R.",
     "lang": "ru",
     "start_url": "./",
     "scope": "./",
@@ -94,15 +94,16 @@ head_add = """<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 """
-html = html.replace('<title>Тренажёр выводов R</title>', '<title>Тренажёр выводов R</title>\n' + head_add, 1)
+html = re.sub(r'(<title>[^<]*</title>)', lambda m: m.group(1) + '\n' + head_add, html, count=1)
 css_add = """.upd{position:fixed;left:12px;right:12px;bottom:76px;z-index:9;background:var(--console-bg);color:var(--console-ink);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:14px}
 .upd .btn{flex:none}
 .ver{font-size:13px;color:var(--muted);margin-top:28px;border-top:1px solid var(--line);padding-top:12px}
 """
 html = html.replace("[hidden]{display:none!important}", css_add + "[hidden]{display:none!important}", 1)
-changelog = f"""<div class="ver" id="ver"><b>Версия {VERSION}</b> · {DATE}<br>Что нового: первая версия — 500 выводов R, 2500 вопросов, раздел «Как читать вывод». Прогресс хранится на этом телефоне.<br>Хочешь новые задания — напиши Claude в проекте, что добавить. После согласования выйдет обновление, приложение покажет кнопку «Обновить».</div>"""
-html = html.replace('<section id="view-guide" class="guide" hidden>', '<section id="view-guide" class="guide" hidden>', 1)
-html = html.replace("</section>\n</main>", changelog + "\n</section>\n</main>", 1)
+changelog = f"""<div class="ver" id="ver"><b>Версия {VERSION}</b> · {DATE}<br>Что нового: меню разделов; +100 выводов пуассоновской регрессии и +60 множественной (всего 660 выводов, 3300 вопросов); вкладка «Методы» с объяснениями линейной, множественной, логистической и пуассоновской регрессии; тренажёр синтаксиса R — 191 упражнение в 5 блоках. Старый прогресс сохранён.<br>1.0 · 14.11.2026 — 500 выводов R и раздел «Как читать вывод».<br>Хочешь новые задания — напиши Claude в проекте, что добавить. После согласования выйдет обновление, приложение покажет кнопку «Обновить».</div>"""
+anchor = '\n  </section>\n  <section id="view-train"'
+assert anchor in html
+html = html.replace(anchor, '\n    ' + changelog + anchor, 1)
 upd = """<div class="upd" id="upd" hidden><span>Вышло обновление тренажёра</span><button class="btn" id="upd-btn" type="button">Обновить</button></div>
 <script>
 (function(){
