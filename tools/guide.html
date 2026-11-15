@@ -1,4 +1,4 @@
-<p style="margin-top:16px">Короткие правила к каждому виду вывода. Во вкладке «Тренировка» те же вещи на 660 примерах. Подробно о каждом методе — во вкладке «Методы».</p>
+<p style="margin-top:16px">Короткие правила к каждому виду вывода. Во вкладке «Тренировка» те же вещи на 890 примерах. Подробно о каждом методе — во вкладке «Методы».</p>
 <div class="toc">
   <a href="#" data-go="g-any">С чего начать</a>
   <a href="#" data-go="g-slope">Наклон b₁</a>
@@ -9,6 +9,9 @@
   <a href="#" data-go="g-logit">Логистическая</a>
   <a href="#" data-go="g-pois">Пуассоновская</a>
   <a href="#" data-go="g-mlr">Множественная</a>
+  <a href="#" data-go="g-tt">t.test</a>
+  <a href="#" data-go="g-wx">wilcox.test</a>
+  <a href="#" data-go="g-cat">Таблицы</a>
   <a href="#" data-go="g-ci">ДИ и прогноз</a>
   <a href="#" data-go="g-calc">Калькулятор</a>
 </div>
@@ -182,6 +185,41 @@ Residual deviance: 60.339  on 27  degrees of freedom</pre>
   <li><b>t в строке</b> — нужен ли предиктор, когда остальные уже в модели. <b>F внизу</b> — все предикторы вместе (H₀: все β при x равны 0).</li>
   <li><b>Residual df = n − число коэффициентов</b> (с Intercept). Отсюда n и df для <code>qt</code>.</li>
   <li><b>Adjusted R²</b> — для сравнения моделей с разным числом предикторов. <b>car::vif</b> больше 4 — разобраться, больше 10 — серьёзная коллинеарность.</li>
+</ol>
+
+<h2 id="g-tt">t.test: что где в выводе</h2>
+<pre class="console">	Welch Two Sample t-test
+
+data:  adg by diet
+t = -1.1134, df = 36.746, p-value = 0.2728
+alternative hypothesis: true difference in means between group Control and group Probiotic is not equal to 0
+95 percent confidence interval:
+ -49.54764  14.41128
+sample estimates:
+  mean in group Control mean in group Probiotic
+               793.7500                811.3182</pre>
+<ol>
+  <li><b>Первая строка — какой тест.</b> «Welch Two Sample» — по умолчанию; «Two Sample» — pooled (<code>var.equal = TRUE</code>, df целые = n₁ + n₂ − 2); «Paired» — пары (df = пар − 1); «One Sample» — сравнение с числом mu.</li>
+  <li><b>Направление:</b> первая группа по алфавиту минус вторая (Control − Probiotic). ДИ — для этой разности.</li>
+  <li><b>SE не печатается:</b> SE = разность / t. Погрешность = половина ширины ДИ = t*·SE.</li>
+  <li><b>ДИ без 0 ⇔ p &lt; 0,05.</b> Пиши силу доказательств по шкале курса и само p.</li>
+</ol>
+
+<h2 id="g-wx">wilcox.test: W и V</h2>
+<ol>
+  <li><b>Ранговая сумма:</b> W = сумма рангов первой по алфавиту группы − n₁(n₁+1)/2. При H₀ W ≈ n₁n₂/2. W / (n₁n₂) — доля пар, где первая группа больше.</li>
+  <li><b>«exact test»</b> — точный перебор раскладок (n &lt; 50, нет ничьих). С ничьими — нормальное приближение; в курсе пишут <code>exact = FALSE, correct = FALSE</code>.</li>
+  <li><b>Пары:</b> <code>wilcox.test(x, y, paired = TRUE)</code> печатает V — сумму рангов положительных разностей x − y. При H₀ V ≈ n(n+1)/4.</li>
+  <li><b>Тест знаков:</b> <code>binom.test(S, n)</code>, S — число положительных разностей; «probability of success» — доля пар с плюсом.</li>
+</ol>
+
+<h2 id="g-cat">Таблицы: prop.test, chisq.test, fisher.test, mcnemar.test</h2>
+<ol>
+  <li><b>prop.test(tab, correct = FALSE)</b> — первый столбец «успех»; prop 1 и prop 2 — доли по строкам; ДИ — для prop 1 − prop 2 (ноль = нет эффекта).</li>
+  <li><b>OR руками:</b> ad/bc; SE(log OR) = √(1/a + 1/b + 1/c + 1/d); ДИ = exp(log OR ± 1,96·SE) (единица = нет эффекта). Перевернул строки — 1/OR.</li>
+  <li><b>chisq.test:</b> X² = Σ(O − E)²/E, E = строка × столбец / n, df = (r − 1)(c − 1). Для 2×2 без поправки X² = z² теста двух долей. «with Yates' continuity correction» — поправка по умолчанию.</li>
+  <li><b>«Chi-squared approximation may be incorrect»</b> — есть ожидаемые &lt; 5: <code>fisher.test(tab)</code>. Его odds ratio — условная оценка, чуть отличается от ad/bc.</li>
+  <li><b>mcnemar.test</b> — одни и те же единицы дважды: важны только несогласные клетки b и c, X² = (b − c)²/(b + c).</li>
 </ol>
 
 <h2 id="g-ci">Доверительные интервалы и прогноз</h2>

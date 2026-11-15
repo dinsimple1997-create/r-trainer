@@ -926,6 +926,15 @@ def main():
             new.append(fn(rng, bank[i % len(bank)]))
     order2 = np.random.default_rng(8).permutation(len(new))
     out += [new[i] for i in order2]
+    # v1.2: t-tests, nonparametric, categorical, appended after id 660
+    import gen3
+    new3 = []
+    for sub, fn, bank, count in gen3.PLAN3:
+        for i in range(count):
+            rng = np.random.default_rng(seed + (len(out) + len(new3)) * 7919)
+            new3.append(fn(rng, bank[i % len(bank)]))
+    order3 = np.random.default_rng(9).permutation(len(new3))
+    out += [new3[i] for i in order3]
     for i, e in enumerate(out):
         e["id"] = i + 1
     json.dump(out, open("examples.json", "w"), ensure_ascii=False, separators=(",", ":"))

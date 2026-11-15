@@ -112,8 +112,11 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
 .brand{align-items:center}
 .brand h1{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .menu-btn{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:500;border-radius:10px;padding:5px 10px;cursor:pointer}
-.prog.p4{grid-template-columns:repeat(4,1fr)}
-@media (max-width:560px){.prog.p4{grid-template-columns:repeat(2,1fr)}}
+.prog.p8{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.pbox.sm{padding:7px 8px}
+.pbox.sm .k{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbox.sm .v{font-size:15px}
+.pbox.sm .v .k{font-size:11px}
 .home-lead{margin:18px 0 10px;color:var(--muted)}
 .tiles{display:grid;gap:10px}
 .tile{display:block;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
@@ -172,10 +175,10 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     <p class="home-lead">Выбери раздел. Прогресс сохраняется на этом устройстве.</p>
     <div class="tiles">
       <a class="tile" href="#train"><div class="t-k">Выводы R</div><div class="t-h">Тренажёр выводов R</div>
-        <div class="t-s">660 выводов и 3300 вопросов: ANOVA, линейная и множественная, логистическая, пуассоновская регрессия</div>
+        <div class="t-s">890 выводов и 4450 вопросов: t-тесты, непараметрические тесты, таблицы сопряжённости, ANOVA, линейная и множественная, логистическая, пуассоновская регрессия</div>
         <div class="t-p" id="home-out"></div></a>
       <a class="tile" href="#methods"><div class="t-k">Теория</div><div class="t-h">Методы: объяснения</div>
-        <div class="t-s">Простыми словами и на примерах со свиньями: что считает каждая регрессия и как читать её числа</div></a>
+        <div class="t-s">Простыми словами и на примерах курса: t-тесты, ранговые тесты, доли и хи-квадрат, регрессии — что считает каждый метод и как читать его числа</div></a>
       <a class="tile" href="#guide"><div class="t-k">Шпаргалка</div><div class="t-h">Как читать вывод</div>
         <div class="t-s">Короткие правила к каждому виду вывода R и калькулятор</div></a>
       <a class="tile" href="#syntax"><div class="t-k">Код</div><div class="t-h">Тренажёр синтаксиса R</div>
@@ -186,7 +189,7 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     </div>
   </section>
   <section id="view-train" hidden>
-    <div class="prog p4" id="prog"></div>
+    <div class="prog p8" id="prog"></div>
     <div id="card"></div>
   </section>
   <section id="view-guide" class="guide" hidden>__GUIDE__</section>
@@ -213,19 +216,26 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
 (function(){
   function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
   function chip(label, pressed, onclick){ var b=document.createElement('button'); b.className='chip'; b.type='button'; b.textContent=label; b.setAttribute('aria-pressed', pressed ? 'true':'false'); b.onclick=onclick; return b; }
+  function pboxs(k, a, b){ var pct = b ? Math.round(100*a/b) : 0; var d=document.createElement('div'); d.className='pbox sm'; d.innerHTML='<div class="k">'+k+'</div><div class="v">'+a+'<span class="k">/'+b+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div>'; return d; }
   function pbox(k, a, b){ var pct = b ? Math.round(100*a/b) : 0; var d=document.createElement('div'); d.className='pbox'; d.innerHTML='<div class="k">'+k+'</div><div class="v">'+a+' <span class="k">из '+b+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div>'; return d; }
 
   /* =================== Output trainer =================== */
   var EX = JSON.parse(document.getElementById('data').textContent);
-  var CATS = [["all","Все"],["anova","ANOVA"],["lin","Линейная"],["logit","Логистическая"],["pois","Пуассоновская"]];
+  var CATS = [["all","Все"],["ttest","t-тесты"],["nonpar","Непараметрические"],["cat","Таблицы"],["anova","ANOVA"],["lin","Линейная"],["logit","Логистическая"],["pois","Пуассоновская"]];
   var SUBS = {
     anova:[["aov","summary(aov)"],["lmfac","lm с фактором"],["tukey","TukeyHSD"]],
     lin:[["lin","Y ~ X"],["mlr","Множественная"],["logy","log(Y) ~ X"],["logx","Y ~ log(X)"],["loglog","log(Y) ~ log(X)"]],
     logit:[["g2","2 группы"],["gx","X непрерывный"],["g3","3 группы"]],
-    pois:[["p2","2 группы + offset"],["p3","3 группы + offset"],["px","X непрерывный"]]
+    pois:[["p2","2 группы + offset"],["p3","3 группы + offset"],["px","X непрерывный"]],
+    ttest:[["t2p","Pooled"],["t2w","Welch"],["tpair","Парный"],["t1","Одна выборка"]],
+    nonpar:[["wrs","Ранговая сумма"],["wsr","Знаково-ранговый"],["sign","Тест знаков"]],
+    cat:[["c22","2×2: доли и OR"],["crc","Хи-квадрат r×c"],["fish","Фишер"],["mcn","Макнемар"]]
   };
   var SUBNAME = {aov:"ANOVA",lmfac:"lm с фактором",tukey:"TukeyHSD",lin:"Y ~ X",mlr:"Множественная",logy:"log(Y) ~ X",logx:"Y ~ log(X)",loglog:"log-log",
-    g2:"Логистическая · 2 группы",gx:"Логистическая · X",g3:"Логистическая · 3 группы",p2:"Пуассоновская · 2 группы",p3:"Пуассоновская · 3 группы",px:"Пуассоновская · X"};
+    g2:"Логистическая · 2 группы",gx:"Логистическая · X",g3:"Логистическая · 3 группы",p2:"Пуассоновская · 2 группы",p3:"Пуассоновская · 3 группы",px:"Пуассоновская · X",
+    t2p:"t-тест · pooled",t2w:"t-тест · Welch",tpair:"t-тест · парный",t1:"t-тест · одна выборка",
+    wrs:"Вилкоксон · ранговая сумма",wsr:"Вилкоксон · знаково-ранговый",sign:"Тест знаков",
+    c22:"Таблица 2×2",crc:"Хи-квадрат r×c",fish:"Тест Фишера",mcn:"Тест Макнемара"};
   var KEY = "r-trainer-v1";
   var st = {cat:"all", sub:"", only:"", pos:{}, ans:{}};
   try { var s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s) { st.cat = s.cat || "all"; st.sub = s.sub || ""; st.only = s.only || ""; st.pos = s.pos || {}; st.ans = s.ans || {}; } } catch(e) {}
@@ -261,7 +271,7 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     c2.hidden = (route !== 'train') || st.cat === 'all';
   }
   function outSolved(){
-    var solved=0, per={anova:[0,0],lin:[0,0],logit:[0,0],pois:[0,0]};
+    var solved=0, per={anova:[0,0],lin:[0,0],logit:[0,0],pois:[0,0],ttest:[0,0],nonpar:[0,0],cat:[0,0]};
     EX.forEach(function(e){ e.qs.forEach(function(q,i){ var a=st.ans[qkey(e,i)]; if(a&&a.ok){ solved++; per[e.cat][0]++; } per[e.cat][1]++; }); });
     return {solved:solved, per:per};
   }
@@ -269,7 +279,8 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     var r = outSolved();
     if (route==='train' || route==='guide' || route==='methods') document.getElementById('stat').textContent = r.solved + " / " + TOTALQ;
     var p = document.getElementById('prog'); p.innerHTML='';
-    [["anova","ANOVA"],["lin","Линейная"],["logit","Логистич."],["pois","Пуассон."]].forEach(function(c){ p.appendChild(pbox(c[1], r.per[c[0]][0], r.per[c[0]][1])); });
+    [["ttest","t-тесты"],["nonpar","Непарам."],["cat","Таблицы"],["anova","ANOVA"],["lin","Линейная"],["logit","Логист."],["pois","Пуассон"]].forEach(function(c){ p.appendChild(pboxs(c[1], r.per[c[0]][0], r.per[c[0]][1])); });
+    p.appendChild(pboxs("Всего", r.solved, TOTALQ));
   }
 
   function consoleHTML(text){
