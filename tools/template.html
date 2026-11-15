@@ -145,6 +145,21 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
 .outbox .k{font-size:12px;color:var(--muted)}
 .outbox .console{border-radius:10px;font-size:13px}
 .guide a{color:var(--accent)}
+.exp-story p{margin:8px 0}
+.report{margin:10px 0 4px;padding:10px 12px;border-left:4px solid #c4561d;background:var(--bg);border-radius:8px;font-size:14.5px}
+.scheme{margin:4px 16px 0;padding:10px 12px;background:var(--bg);border-radius:12px}
+.sch-t{font-size:12.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.room{display:flex;align-items:center;gap:8px;margin:5px 0}
+.room-l{flex:0 0 112px;font-size:12.5px;color:var(--muted);line-height:1.2}
+.pens{display:flex;flex-wrap:wrap;gap:4px}
+.pen{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:26px;padding:0 4px;border-radius:6px;color:#fff;font:600 12px var(--font-mono)}
+.pc0{background:#1f62b3}.pc1{background:#c4561d}.pc2{background:#3f8f5e}.pc3{background:#7b5235}
+.sch-leg{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:6px;font-size:12.5px;color:var(--muted)}
+.sch-leg span{display:inline-flex;align-items:center;gap:5px}
+.sch-leg i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.opt.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.opt.miss{border-style:dashed;border-color:var(--ok)}
+.mhint{font-size:13px;color:var(--muted);margin:2px 0 6px}
 </style>
 </head>
 <body>
@@ -164,9 +179,14 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
       <button class="tab" role="tab" id="tab-syntax" aria-selected="true">Упражнения</button>
       <button class="tab" role="tab" id="tab-synref" aria-selected="false">Правила и источники</button>
     </div>
+    <div class="tabs" role="tablist" id="tabs-exp" hidden>
+      <button class="tab" role="tab" id="tab-exp" aria-selected="true">Эксперименты</button>
+      <button class="tab" role="tab" id="tab-expref" aria-selected="false">Виды планов</button>
+    </div>
     <div class="chips" id="chips-cat" aria-label="Тип модели"></div>
     <div class="chips" id="chips-sub" aria-label="Подтип"></div>
     <div class="chips" id="chips-syn" aria-label="Блок" hidden></div>
+    <div class="chips" id="chips-exp" aria-label="Вид исследования" hidden></div>
   </div>
 </header>
 
@@ -184,6 +204,9 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
       <a class="tile" href="#syntax"><div class="t-k">Код</div><div class="t-h">Тренажёр синтаксиса R</div>
         <div class="t-s">__SYNCOUNT__ упражнений в 5 блоках: база, таблицы, функции и модели, ggplot2, tidyverse. Перепечатай код и выбери, что он делает</div>
         <div class="t-p" id="home-syn"></div></a>
+      <a class="tile" href="#exp"><div class="t-k">Планы опытов</div><div class="t-h">Виды экспериментов</div>
+        <div class="t-s">Описание опыта из свиноводства, потом вопросы: единица эксперимента, вид плана, рандомизация, найди ошибки, правильный анализ и вывод</div>
+        <div class="t-p" id="home-exp"></div></a>
       <div class="tile soon"><div class="t-k">Скоро</div><div class="t-h">Смешанные модели</div>
         <div class="t-s">Следующий раздел, когда пройдём эти</div></div>
     </div>
@@ -199,6 +222,11 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     <div id="syn-card"></div>
   </section>
   <section id="view-synref" class="guide" hidden>__SYNREF__</section>
+  <section id="view-exp" hidden>
+    <div class="prog" id="exp-prog"></div>
+    <div id="exp-card"></div>
+  </section>
+  <section id="view-expref" class="guide" hidden>__EXPREF__</section>
 </main>
 
 <nav class="bottom" id="nav" hidden>
@@ -212,6 +240,7 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
 
 <script type="application/json" id="data">__DATA__</script>
 <script type="application/json" id="syndata">__SYNDATA__</script>
+<script type="application/json" id="expdata">__EXPDATA__</script>
 <script>
 (function(){
   function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -521,13 +550,147 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
   }
   function renderSynAll(scroll){ renderSynChips(); renderSynProg(); renderSynCard(scroll); }
 
+  /* =================== Experiments =================== */
+  var XRAW = JSON.parse(document.getElementById('expdata').textContent), XS = XRAW.S, XD = XRAW.X;
+  (function(){ function S(v){ return typeof v === 'number' ? XS[v] : v; }
+    XD.forEach(function(x){ x.title=S(x.title); x.topic=S(x.topic); x.qs.forEach(function(q){ q.q=S(q.q); q.ex=S(q.ex); if (q.o) q.o=q.o.map(S); }); }); })();
+  var xById = {}; XD.forEach(function(x){ xById[x.id] = x; });
+  var XKEY = "r-exp-v1";
+  var xs = {pos:0, ans:{}, f:"", only:""};
+  try { var s3 = JSON.parse(localStorage.getItem(XKEY) || "null"); if (s3) { xs.pos = s3.pos || 0; xs.ans = s3.ans || {}; xs.f = s3.f || ""; xs.only = s3.only || ""; } } catch(e) {}
+  var XDN = [["crd","CRD"],["rcbd","Блоки"],["pair","Пары"],["latin","Лат. квадрат"],["fact","Факторный"],["split","Split-plot"],["rep","Повторные"],
+             ["cross","Перекрёстный"],["ba","До/после"],["cohort","Когортное"],["cc","Случай-контроль"],["xs","Срез"]];
+  function xsave(){ try { localStorage.setItem(XKEY, JSON.stringify(xs)); } catch(e) {} }
+  var XTOTQ = 0; XD.forEach(function(x){ XTOTQ += x.qs.length; });
+  function xdone(x){ return x.qs.every(function(q,i){ var a=xs.ans[x.id+":"+i]; return a&&a.ok; }); }
+  function xStats(){ var ok=0, done=0; XD.forEach(function(x){ var all=true; x.qs.forEach(function(q,i){ var a=xs.ans[x.id+":"+i]; if(a&&a.ok) ok++; else all=false; }); if(all) done++; }); return {ok:ok, done:done}; }
+  function xlist(){ return XD.filter(function(x){ return (!xs.f || x.d===xs.f) && (!xs.only || !xdone(x)); }); }
+  function renderExpChips(){
+    var c = document.getElementById('chips-exp'); c.innerHTML='';
+    function setF(f){ xs.f=f; var L=xlist(); if (L.length && L.map(function(x){return x.id;}).indexOf(xs.pos)<0) xs.pos=L[0].id; xsave(); renderExpAll(true); }
+    c.appendChild(chip("Все виды", !xs.f, function(){ setF(""); }));
+    XDN.forEach(function(d){ c.appendChild(chip(d[1], xs.f===d[0], function(){ setF(d[0]); })); });
+    c.appendChild(chip("Нерешённые", xs.only==="todo", function(){ xs.only = xs.only==="todo"?"":"todo"; var L=xlist(); if (L.length && L.map(function(x){return x.id;}).indexOf(xs.pos)<0) xs.pos=L[0].id; xsave(); renderExpAll(true); }));
+  }
+  function renderExpProg(){
+    var r = xStats();
+    if (route==='exp' || route==='expref') document.getElementById('stat').textContent = r.ok + " / " + XTOTQ;
+    var p = document.getElementById('exp-prog'); p.innerHTML='';
+    p.appendChild(pbox("Решено вопросов", r.ok, XTOTQ));
+    p.appendChild(pbox("Опытов разобрано", r.done, XD.length));
+  }
+  function xcur(){
+    var L = xlist(), x = xById[xs.pos];
+    if (!x || (xs.f && x.d!==xs.f)) { if (!L.length) return null; x = L[0]; xs.pos = x.id; }
+    return {L:L, idx:L.indexOf(x), x:x};
+  }
+  function xgo(d){
+    var L = xlist(); if (!L.length) return;
+    var i = L.findIndex(function(x){ return x.id===xs.pos; });
+    if (i >= 0) i = (i+d+L.length)%L.length;
+    else if (d > 0) { i = L.findIndex(function(x){ return x.id>xs.pos; }); if (i<0) i=0; }
+    else { i = -1; L.forEach(function(x,j){ if (x.id<xs.pos) i=j; }); if (i<0) i=L.length-1; }
+    xs.pos = L[i].id; xsave(); renderExpCard(true);
+  }
+  function xgoRandom(){ var L=xlist(); if(!L.length) return; var pool=L.filter(function(x){ return !xdone(x) && x.id!==xs.pos; }); if(!pool.length) pool=L; xs.pos = pool[Math.floor(Math.random()*pool.length)].id; xsave(); renderExpCard(true); }
+  function xgoId(n){ if(!xById[n]) return false; xs.f=""; xs.only=""; xs.pos=n; xsave(); renderExpAll(true); return true; }
+  function schemeHTML(sc){
+    if (!sc) return '';
+    var codes = Object.keys(sc.legend);
+    var h = '<div class="scheme"><div class="sch-t">Схема: '+esc(sc.title)+'</div>';
+    sc.rooms.forEach(function(r){
+      h += '<div class="room"><div class="room-l">'+esc(r[0])+'</div><div class="pens">'+r[1].map(function(c){ return '<span class="pen pc'+codes.indexOf(c)+'">'+esc(c)+'</span>'; }).join('')+'</div></div>';
+    });
+    h += '<div class="sch-leg">'+codes.map(function(c,i){ return '<span><i class="pc'+i+'"></i>'+esc(c)+' — '+esc(sc.legend[c])+'</span>'; }).join('')+'</div></div>';
+    return h;
+  }
+  function renderExpCard(scroll){
+    var c = xcur(), box = document.getElementById('exp-card');
+    if (!c){ box.innerHTML = '<article class="card"><h2>Здесь всё решено</h2><p class="intro">В этом фильтре не осталось нерешённых опытов. Выбери другой вид исследования или сними фильтр «Нерешённые».</p></article>'; return; }
+    var x = c.x;
+    var h = '<article class="card">';
+    h += '<div class="card-h"><span class="idx">№ '+x.id+' · '+(c.idx>=0 ? (c.idx+1)+' из '+c.L.length : 'решён, осталось '+c.L.length)+'</span><span class="tag">'+esc(x.topic)+'</span></div>';
+    h += '<h2>'+esc(x.title)+'</h2>';
+    h += '<div class="intro exp-story">'+x.story+'</div>';
+    h += schemeHTML(x.scheme);
+    h += '<div class="qs">';
+    x.qs.forEach(function(q,i){
+      var k = x.id+":"+i, a = xs.ans[k];
+      var cls = a && a.ok ? (a.miss ? ' done-bad':' done-ok') : '';
+      h += '<div class="q'+cls+'" data-i="'+i+'"><div class="qn">Вопрос '+(i+1)+' из '+x.qs.length+'</div><div class="qt">'+q.q+'</div>';
+      if (q.t==='mc'){
+        h += '<div class="opts">';
+        q.o.forEach(function(o,j){ var oc=''; if (a && a.picked && a.picked.indexOf(j)>=0) oc=(j===q.a)?' ok':' bad'; h += '<button type="button" class="opt'+oc+'" data-j="'+j+'">'+o+'</button>'; });
+        h += '</div>';
+      } else if (q.t==='multi'){
+        h += '<div class="mhint">Отметь все подходящие варианты, потом «Проверить».</div><div class="opts">';
+        q.o.forEach(function(o,j){
+          var oc='', sel = a && a.sel && a.sel.indexOf(j)>=0;
+          if (a && a.checked){ var isE = q.a.indexOf(j)>=0; oc = sel ? (isE?' ok':' bad') : (isE?' miss':''); }
+          else if (sel) oc=' sel';
+          h += '<button type="button" class="opt'+oc+'" data-j="'+j+'" aria-pressed="'+(sel?'true':'false')+'">'+o+'</button>';
+        });
+        h += '</div><div class="row"><button type="button" class="btn mchk">Проверить</button><span class="res'+(a&&a.ok?' ok':'')+'">'+(a&&a.checked?(a.ok?'✓ Все ошибки найдены':'Есть промахи: зелёный пунктир — пропущенная ошибка, красное — не ошибка'):'')+'</span></div>';
+      } else {
+        h += '<div class="row"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Ответ" value="'+(a&&a.val?String(a.val).replace(/"/g,'&quot;'):'')+'"><button type="button" class="btn chk">Проверить</button><button type="button" class="btn ghost show">Ответ</button></div>'+
+             '<div class="row"><span class="res'+(a&&a.ok?' ok':'')+'">'+(a&&a.ok?(a.shown?'Ответ: '+q.a:'✓ Верно'):'')+'</span></div>';
+      }
+      h += '<div class="ex'+(a&&(a.ok||a.checked||(a.picked&&a.picked.length))?' on':'')+'">'+q.ex+'</div></div>';
+    });
+    h += '</div></article>';
+    box.innerHTML = h;
+    bindExp(x);
+    if (scroll) window.scrollTo({top:0});
+  }
+  function bindExp(x){
+    document.querySelectorAll('#exp-card .q').forEach(function(div){
+      var i = +div.getAttribute('data-i'), q = x.qs[i], k = x.id+":"+i, ex = div.querySelector('.ex');
+      if (q.t==='mc'){
+        div.querySelectorAll('.opt').forEach(function(b){ b.onclick=function(){
+          var j=+b.getAttribute('data-j'), a=xs.ans[k]||{picked:[]}; a.picked=a.picked||[]; if(a.picked.indexOf(j)<0) a.picked.push(j);
+          ex.classList.add('on');
+          if (j===q.a){ a.ok=true; b.classList.add('ok'); div.classList.add(a.miss?'done-bad':'done-ok'); } else { if(!a.ok) a.miss=true; b.classList.add('bad'); }
+          xs.ans[k]=a; xsave(); renderExpProg();
+        }; });
+      } else if (q.t==='multi'){
+        div.querySelectorAll('.opt').forEach(function(b){ b.onclick=function(){
+          var a=xs.ans[k]||{sel:[]}; a.sel=a.sel||[];
+          if (a.checked){ a.checked=false; div.querySelectorAll('.opt').forEach(function(o){ o.classList.remove('ok','bad','miss'); var jj=+o.getAttribute('data-j'); if(a.sel.indexOf(jj)>=0) o.classList.add('sel'); }); div.querySelector('.res').textContent=''; }
+          var j=+b.getAttribute('data-j'), p=a.sel.indexOf(j);
+          if (p>=0){ a.sel.splice(p,1); b.classList.remove('sel'); b.setAttribute('aria-pressed','false'); } else { a.sel.push(j); b.classList.add('sel'); b.setAttribute('aria-pressed','true'); }
+          xs.ans[k]=a; xsave();
+        }; });
+        div.querySelector('.mchk').onclick=function(){
+          var a=xs.ans[k]||{sel:[]}; a.sel=a.sel||[]; a.checked=true;
+          var right = a.sel.length===q.a.length && q.a.every(function(j){ return a.sel.indexOf(j)>=0; });
+          if (right) a.ok=true; else if (!a.ok) a.miss=true;
+          div.querySelectorAll('.opt').forEach(function(o){ var j=+o.getAttribute('data-j'), sel=a.sel.indexOf(j)>=0, isE=q.a.indexOf(j)>=0; o.classList.remove('sel','ok','bad','miss'); if(sel) o.classList.add(isE?'ok':'bad'); else if(isE) o.classList.add('miss'); });
+          var res=div.querySelector('.res'); res.className='res'+(right?' ok':' bad'); res.textContent = right ? '✓ Все ошибки найдены' : 'Есть промахи: зелёный пунктир — пропущенная ошибка, красное — не ошибка';
+          ex.classList.add('on'); if (right) div.classList.add(a.miss?'done-bad':'done-ok');
+          xs.ans[k]=a; xsave(); renderExpProg();
+        };
+      } else {
+        var inp=div.querySelector('input'), res=div.querySelector('.res');
+        function check(){ var v=parseNum(inp.value); if(isNaN(v)) return; var a=xs.ans[k]||{}; a.val=inp.value;
+          if (Math.abs(v-q.a) <= q.tol + 1e-9){ a.ok=true; res.className='res ok'; res.textContent='✓ Верно'; ex.classList.add('on'); div.classList.add(a.miss?'done-bad':'done-ok'); }
+          else { if(!a.ok) a.miss=true; res.className='res bad'; res.textContent='✗ Не то. Попробуй ещё или открой ответ'; }
+          xs.ans[k]=a; xsave(); renderExpProg(); }
+        div.querySelector('.chk').onclick=check;
+        inp.addEventListener('keydown', function(ev){ if(ev.key==='Enter') check(); });
+        div.querySelector('.show').onclick=function(){ var a=xs.ans[k]||{}; if(!a.ok) a.miss=true; a.ok=true; a.shown=true; xs.ans[k]=a; xsave(); res.className='res ok'; res.textContent='Ответ: '+q.a; ex.classList.add('on'); div.classList.add('done-bad'); renderExpProg(); };
+      }
+    });
+  }
+  function renderExpAll(scroll){ renderExpChips(); renderExpProg(); renderExpCard(scroll); }
+
   /* =================== Router =================== */
-  var ROUTES = ['home','train','guide','methods','syntax','synref'];
-  var TITLES = {home:'Тренажёр R', train:'Тренажёр выводов R', guide:'Тренажёр выводов R', methods:'Тренажёр выводов R', syntax:'Тренажёр синтаксиса R', synref:'Тренажёр синтаксиса R'};
+  var ROUTES = ['home','train','guide','methods','syntax','synref','exp','expref'];
+  var TITLES = {home:'Тренажёр R', train:'Тренажёр выводов R', guide:'Тренажёр выводов R', methods:'Тренажёр выводов R', syntax:'Тренажёр синтаксиса R', synref:'Тренажёр синтаксиса R', exp:'Виды экспериментов', expref:'Виды экспериментов'};
   var route = 'home';
   function renderHome(){
     var r = outSolved(), s = synStats();
     document.getElementById('home-out').innerHTML = 'Решено '+r.solved+' из '+TOTALQ+'<div class="bar"><i style="width:'+Math.round(100*r.solved/TOTALQ)+'%"></i></div>';
+    var xr = xStats(); document.getElementById('home-exp').innerHTML = 'Решено '+xr.ok+' из '+XTOTQ+' · '+XD.length+' опытов, 12 видов<div class="bar"><i style="width:'+Math.round(100*xr.ok/XTOTQ)+'%"></i></div>';
     document.getElementById('home-syn').innerHTML = 'Решено '+s.ok+' из '+s.tot+' · перепечатано '+s.typed+'<div class="bar"><i style="width:'+Math.round(100*s.ok/s.tot)+'%"></i></div>';
     document.getElementById('stat').textContent = '';
   }
@@ -535,32 +698,37 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     if (ROUTES.indexOf(r) < 0) r = 'home';
     route = r;
     ROUTES.forEach(function(x){ document.getElementById('view-'+x).hidden = (x !== r); });
-    var out = (r==='train'||r==='guide'||r==='methods'), syn = (r==='syntax'||r==='synref');
+    var out = (r==='train'||r==='guide'||r==='methods'), syn = (r==='syntax'||r==='synref'), exq = (r==='exp'||r==='expref');
     document.getElementById('tabs-out').hidden = !out;
     document.getElementById('tabs-syn').hidden = !syn;
+    document.getElementById('tabs-exp').hidden = !exq;
+    ['exp','expref'].forEach(function(t){ document.getElementById('tab-'+t).setAttribute('aria-selected', r===t?'true':'false'); });
     ['train','guide','methods'].forEach(function(t){ document.getElementById('tab-'+t).setAttribute('aria-selected', r===t?'true':'false'); });
     ['syntax','synref'].forEach(function(t){ document.getElementById('tab-'+t).setAttribute('aria-selected', r===t?'true':'false'); });
     document.getElementById('chips-cat').hidden = (r !== 'train');
     document.getElementById('chips-syn').hidden = (r !== 'syntax');
-    document.getElementById('nav').hidden = !(r==='train' || r==='syntax');
+    document.getElementById('chips-exp').hidden = (r !== 'exp');
+    document.getElementById('chips-sub').hidden = (r !== 'train') || st.cat === 'all';
+    document.getElementById('nav').hidden = !(r==='train' || r==='syntax' || r==='exp');
     document.getElementById('menu-btn').hidden = (r==='home');
     document.getElementById('title').textContent = TITLES[r];
-    document.getElementById('jump').setAttribute('aria-label', r==='syntax' ? 'Номер упражнения' : 'Номер примера');
+    document.getElementById('jump').setAttribute('aria-label', r==='syntax' ? 'Номер упражнения' : r==='exp' ? 'Номер опыта' : 'Номер примера');
     if (r==='home') renderHome();
     if (out) renderAll(false);
     if (syn) renderSynAll(false);
+    if (exq) renderExpAll(false);
     try { if (location.hash !== '#'+r) history.replaceState(null, '', '#'+r); } catch(e) {}
     if (!noScroll) window.scrollTo({top:0});
   }
   function hashRoute(){ var h = (location.hash||'').replace('#',''); return ROUTES.indexOf(h)>=0 ? h : 'home'; }
 
   document.getElementById('menu-btn').onclick = function(){ show('home'); };
-  ['train','guide','methods','syntax','synref'].forEach(function(t){ document.getElementById('tab-'+t).onclick = function(){ show(t); }; });
-  document.getElementById('prev').onclick = function(){ route==='syntax' ? sgo(-1) : go(-1); };
-  document.getElementById('next').onclick = function(){ route==='syntax' ? sgo(1) : go(1); };
-  document.getElementById('rand').onclick = function(){ route==='syntax' ? sgoRandom() : goRandom(); };
+  ['train','guide','methods','syntax','synref','exp','expref'].forEach(function(t){ document.getElementById('tab-'+t).onclick = function(){ show(t); }; });
+  document.getElementById('prev').onclick = function(){ route==='syntax' ? sgo(-1) : route==='exp' ? xgo(-1) : go(-1); };
+  document.getElementById('next').onclick = function(){ route==='syntax' ? sgo(1) : route==='exp' ? xgo(1) : go(1); };
+  document.getElementById('rand').onclick = function(){ route==='syntax' ? sgoRandom() : route==='exp' ? xgoRandom() : goRandom(); };
   var jump = document.getElementById('jump');
-  function doJump(){ var n=parseInt(jump.value,10); var ok = route==='syntax' ? sgoId(n) : goId(n); if (ok){ jump.value=''; jump.blur(); } }
+  function doJump(){ var n=parseInt(jump.value,10); var ok = route==='syntax' ? sgoId(n) : route==='exp' ? xgoId(n) : goId(n); if (ok){ jump.value=''; jump.blur(); } }
   jump.addEventListener('keydown', function(ev){ if (ev.key==='Enter') doJump(); });
   jump.addEventListener('change', doJump);
   document.querySelectorAll('.guide a[data-go]').forEach(function(a){ a.addEventListener('click', function(ev){ ev.preventDefault(); var el=document.getElementById(a.getAttribute('data-go')); if(el) el.scrollIntoView(); }); });
