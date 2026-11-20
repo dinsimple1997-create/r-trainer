@@ -1,8 +1,8 @@
 import json, os, re, shutil
 from PIL import Image, ImageDraw, ImageFont
 
-VERSION = "1.5"
-DATE = "20.11.2026"
+VERSION = "1.6"
+DATE = "21.11.2026"
 import sys
 OUT = sys.argv[1] if len(sys.argv) > 1 else ".."
 os.makedirs(OUT, exist_ok=True)
@@ -100,13 +100,9 @@ head_add = """<link rel="manifest" href="manifest.webmanifest">
 html = re.sub(r'(<title>[^<]*</title>)', lambda m: m.group(1) + '\n' + head_add, html, count=1)
 css_add = """.upd{position:fixed;left:12px;right:12px;bottom:76px;z-index:9;background:var(--console-bg);color:var(--console-ink);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:14px}
 .upd .btn{flex:none}
-.ver{font-size:13px;color:var(--muted);margin-top:28px;border-top:1px solid var(--line);padding-top:12px}
 """
 html = html.replace("[hidden]{display:none!important}", css_add + "[hidden]{display:none!important}", 1)
-changelog = f"""<div class="ver" id="ver"><b>Версия {VERSION}</b> · {DATE}<br>Что нового: смешанные модели в тренажёре выводов — lmer (иерархия, опыты, блоки + emmeans, повторные измерения) и glmer (логистическая и пуассоновская), +280 выводов, всего 1170; новый раздел «Предпосылки моделей» — 1000 наборов графиков остатков: найди, что нарушено, и выбери, что делать; в «Методах» главы ANOVA и сравнения после F, два фактора и блоки, предпосылки, LMM и GLMM по курсам STAT 5101 и VDPAM 5290; «Как читать» — lmer, glmer, emmeans; +35 упражнений синтаксиса (блок 6). Прогресс сохранён.<br>1.4 · 20.11.2026 — «Экзамен 3 · STAT 5101»: программа на 3 недели по регрессиям, задания с автопроверкой и два пробных экзамена.<br>1.3 · 15.11.2026 — «Виды экспериментов»: 1000 опытов, 12 видов исследований.<br>1.2 · 15.11.2026 — t-тесты, непараметрические тесты и таблицы: +230 выводов, три главы в «Методах», +14 упражнений синтаксиса.<br>1.1 · 15.11.2026 — меню, пуассоновская и множественная регрессия, «Методы», тренажёр синтаксиса.<br>1.0 · 14.11.2026 — 500 выводов R и раздел «Как читать вывод».<br>Хочешь новые задания — напиши Claude в проекте, что добавить. После согласования выйдет обновление, приложение покажет кнопку «Обновить».</div>"""
-anchor = '\n  </section>\n  <section id="view-train"'
-assert anchor in html
-html = html.replace(anchor, '\n    ' + changelog + anchor, 1)
+# версия и список изменений — только в README.md и в имени кэша sw.js; в меню приложения их не показываем
 upd = """<div class="upd" id="upd" hidden><span>Вышло обновление тренажёра</span><button class="btn" id="upd-btn" type="button">Обновить</button></div>
 <script>
 (function(){
