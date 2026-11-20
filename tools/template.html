@@ -194,6 +194,9 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
   <section id="view-home" hidden>
     <p class="home-lead">Выбери раздел. Прогресс сохраняется на этом устройстве.</p>
     <div class="tiles">
+      <a class="tile" href="exam3.html"><div class="t-k">Экзамен 3 · STAT 5101</div><div class="t-h">Регрессии: программа на 3 недели</div>
+        <div class="t-s">21 день по модулям 5–6: простая, логистическая, пуассоновская и множественная регрессия. Кликабельные выводы R, задания с автопроверкой, два пробных экзамена на английском</div>
+        <div class="t-p" id="home-ex3"></div></a>
       <a class="tile" href="#train"><div class="t-k">Выводы R</div><div class="t-h">Тренажёр выводов R</div>
         <div class="t-s">890 выводов и 4450 вопросов: t-тесты, непараметрические тесты, таблицы сопряжённости, ANOVA, линейная и множественная, логистическая, пуассоновская регрессия</div>
         <div class="t-p" id="home-out"></div></a>
@@ -692,6 +695,13 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     document.getElementById('home-out').innerHTML = 'Решено '+r.solved+' из '+TOTALQ+'<div class="bar"><i style="width:'+Math.round(100*r.solved/TOTALQ)+'%"></i></div>';
     var xr = xStats(); document.getElementById('home-exp').innerHTML = 'Решено '+xr.ok+' из '+XTOTQ+' · '+XD.length+' опытов, 12 видов<div class="bar"><i style="width:'+Math.round(100*xr.ok/XTOTQ)+'%"></i></div>';
     document.getElementById('home-syn').innerHTML = 'Решено '+s.ok+' из '+s.tot+' · перепечатано '+s.typed+'<div class="bar"><i style="width:'+Math.round(100*s.ok/s.tot)+'%"></i></div>';
+    var e3 = document.getElementById('home-ex3');
+    if (e3) {
+      var pd = 0, td = 0;
+      try { var pp = JSON.parse(localStorage.getItem('stat5101-exam3-progress-v1') || '{}') || {}; Object.keys(pp).forEach(function(k){ if (pp[k]) pd++; }); } catch(e) {}
+      ['tr1','tr2','tr3','tr4'].forEach(function(id){ try { var tt = JSON.parse(localStorage.getItem('stat5101-exam3-'+id) || '{}') || {}; Object.keys(tt).forEach(function(k){ if (tt[k] && tt[k].ok) td++; }); } catch(e) {} });
+      e3.innerHTML = 'План: '+pd+' из __EX3BOXES__ пунктов · задания: '+td+' из __EX3AUTO__<div class="bar"><i style="width:'+Math.round(100*pd/__EX3BOXES__)+'%"></i></div>';
+    }
     document.getElementById('stat').textContent = '';
   }
   function show(r, noScroll){

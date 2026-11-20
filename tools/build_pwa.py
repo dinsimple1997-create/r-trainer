@@ -1,8 +1,8 @@
 import json, os, re, shutil
 from PIL import Image, ImageDraw, ImageFont
 
-VERSION = "1.3"
-DATE = "15.11.2026"
+VERSION = "1.4"
+DATE = "20.11.2026"
 import sys
 OUT = sys.argv[1] if len(sys.argv) > 1 else ".."
 os.makedirs(OUT, exist_ok=True)
@@ -56,7 +56,7 @@ json.dump(manifest, open(f"{OUT}/manifest.webmanifest", "w", encoding="utf-8"), 
 
 # ---------- service worker ----------
 sw = """const CACHE = 'r-trainer-v__VER__';
-const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
+const CORE = ['./', 'index.html', 'exam3.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)));
 });
@@ -85,6 +85,9 @@ self.addEventListener('fetch', e => {
 """.replace("__VER__", VERSION)
 open(f"{OUT}/sw.js", "w").write(sw)
 
+# ---------- exam 3 lesson ----------
+shutil.copy("exam3/exam3.html", f"{OUT}/exam3.html")
+
 # ---------- index.html ----------
 html = open("r-trainer.html", encoding="utf-8").read()
 head_add = """<link rel="manifest" href="manifest.webmanifest">
@@ -100,7 +103,7 @@ css_add = """.upd{position:fixed;left:12px;right:12px;bottom:76px;z-index:9;back
 .ver{font-size:13px;color:var(--muted);margin-top:28px;border-top:1px solid var(--line);padding-top:12px}
 """
 html = html.replace("[hidden]{display:none!important}", css_add + "[hidden]{display:none!important}", 1)
-changelog = f"""<div class="ver" id="ver"><b>Версия {VERSION}</b> · {DATE}<br>Что нового: раздел «Виды экспериментов» — 1000 опытов из свиноводства, 12 видов исследований (от CRD и блоков до split-plot, перекрёстного плана, когорты и случай-контроль), по 7 вопросов к каждому: единица, план, найди подложенные ошибки, анализ в R, число, вывод. Фильтр по виду исследования и вкладка «Виды планов» с каталогом ошибок. Прогресс сохранён.<br>1.2 · 15.11.2026 — t-тесты, непараметрические тесты и таблицы: +230 выводов, три главы в «Методах», +14 упражнений синтаксиса.<br>1.1 · 15.11.2026 — меню, пуассоновская и множественная регрессия, «Методы», тренажёр синтаксиса.<br>1.0 · 14.11.2026 — 500 выводов R и раздел «Как читать вывод».<br>Хочешь новые задания — напиши Claude в проекте, что добавить. После согласования выйдет обновление, приложение покажет кнопку «Обновить».</div>"""
+changelog = f"""<div class="ver" id="ver"><b>Версия {VERSION}</b> · {DATE}<br>Что нового: раздел «Экзамен 3 · STAT 5101» — программа на 3 недели по модулям 5–6 (простая, логистическая, пуассоновская и множественная регрессия): кликабельные выводы R, задания с автопроверкой, практика из Canvas и два пробных экзамена на английском. Работает без интернета. Остальные разделы и прогресс не изменились.<br>1.3 · 15.11.2026 — «Виды экспериментов»: 1000 опытов из свиноводства, 12 видов исследований, по 7 вопросов к каждому.<br>1.2 · 15.11.2026 — t-тесты, непараметрические тесты и таблицы: +230 выводов, три главы в «Методах», +14 упражнений синтаксиса.<br>1.1 · 15.11.2026 — меню, пуассоновская и множественная регрессия, «Методы», тренажёр синтаксиса.<br>1.0 · 14.11.2026 — 500 выводов R и раздел «Как читать вывод».<br>Хочешь новые задания — напиши Claude в проекте, что добавить. После согласования выйдет обновление, приложение покажет кнопку «Обновить».</div>"""
 anchor = '\n  </section>\n  <section id="view-train"'
 assert anchor in html
 html = html.replace(anchor, '\n    ' + changelog + anchor, 1)
