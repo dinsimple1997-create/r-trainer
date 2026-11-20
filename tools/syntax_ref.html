@@ -6,6 +6,7 @@
   <a href="#" data-go="s-b3">3 · Модели</a>
   <a href="#" data-go="s-b4">4 · ggplot2</a>
   <a href="#" data-go="s-b5">5 · tidyverse</a>
+  <a href="#" data-go="s-b6">6 · Смешанные</a>
   <a href="#" data-go="s-src">Источники</a>
 </div>
 
@@ -95,6 +96,23 @@
   <tr><td><code>pivot_longer()</code> / <code>pivot_wider()</code></td><td>широкая ↔ длинная таблица</td></tr>
 </table></div>
 <p><code>x |&gt; f(y)</code> — то же, что <code>f(x, y)</code>. Читай пайп словом «затем». Ни один глагол не меняет таблицу, пока не присвоишь результат: <code>pigs &lt;- pigs |&gt; mutate(…)</code>. <code>|&gt;</code> встроен в R, <code>%&gt;%</code> из пакета magrittr: в простых случаях они одинаковы.</p>
+
+<h2 id="s-b6">Блок 6. Смешанные модели и диагностика</h2>
+<div class="tw"><table>
+  <tr><th>Код</th><th>Что делает</th></tr>
+  <tr><td><code>(1 | farm)</code></td><td>случайный интерсепт: у каждой фермы свой сдвиг среднего</td></tr>
+  <tr><td><code>(1 | farm/pen)</code></td><td>загоны внутри ферм: два случайных интерсепта</td></tr>
+  <tr><td><code>(wt | farm)</code></td><td>случайные интерсепт и наклон по wt</td></tr>
+  <tr><td><code>lmer()</code> / <code>glmer()</code></td><td>смешанная линейная / обобщённая модель (lme4); lmerTest добавляет df и p</td></tr>
+  <tr><td><code>lme(y ~ x, random = ~1 | farm)</code></td><td>то же в nlme; там есть <code>weights = varIdent()</code> и <code>correlation = corAR1()</code></td></tr>
+  <tr><td><code>VarCorr()</code>, <code>icc()</code></td><td>дисперсии случайных эффектов и ICC</td></tr>
+  <tr><td><code>fixef()</code>, <code>ranef()</code>, <code>coef()</code></td><td>общие коэффициенты, BLUP групп, их сумма</td></tr>
+  <tr><td><code>emmeans()</code>, <code>pairs()</code>, <code>cld()</code></td><td>LS-средние, попарные сравнения (Тьюки), буквы</td></tr>
+  <tr><td><code>plot(m, which = 1:4)</code></td><td>четыре графика остатков lm</td></tr>
+  <tr><td><code>rstandard()</code>, <code>cooks.distance()</code>, <code>car::vif()</code></td><td>стандартизованные остатки, влияние точек, мультиколлинеарность</td></tr>
+  <tr><td><code>shapiro.test()</code>, <code>car::leveneTest()</code></td><td>нормальность остатков, равенство дисперсий</td></tr>
+</table></div>
+<p>Формула смешанной модели: фиксированные эффекты (что изучаем) + случайные в скобках (как устроен опыт). Пробелы вокруг <code>|</code> R ставит сам, когда печатает формулу.</p>
 
 <h2 id="s-src">Источники</h2>
 <p>Упражнения и правила составлены по этим материалам. Все книги бесплатны онлайн.</p>

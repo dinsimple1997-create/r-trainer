@@ -160,6 +160,12 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
 .opt.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .opt.miss{border-style:dashed;border-color:var(--ok)}
 .mhint{font-size:13px;color:var(--muted);margin:2px 0 6px}
+.prog.p8 .pbox.tot{grid-column:1/-1}
+.plots{display:grid;gap:10px;margin:10px 16px 0}
+.plot{background:#fff;border:1px solid var(--line);border-radius:10px;padding:2px;overflow:hidden}
+.plot svg{display:block;width:100%;height:auto}
+.dg-code{margin:10px 16px 0;border-radius:10px;font-size:12px}
+.dg-story{padding:0 16px}
 </style>
 </head>
 <body>
@@ -186,7 +192,12 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     <div class="chips" id="chips-cat" aria-label="Тип модели"></div>
     <div class="chips" id="chips-sub" aria-label="Подтип"></div>
     <div class="chips" id="chips-syn" aria-label="Блок" hidden></div>
+    <div class="tabs" role="tablist" id="tabs-diag" hidden>
+      <button class="tab" role="tab" id="tab-diag" aria-selected="true">Графики</button>
+      <button class="tab" role="tab" id="tab-diagref" aria-selected="false">Шпаргалка</button>
+    </div>
     <div class="chips" id="chips-exp" aria-label="Вид исследования" hidden></div>
+    <div class="chips" id="chips-diag" aria-label="Вид модели" hidden></div>
   </div>
 </header>
 
@@ -198,20 +209,21 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
         <div class="t-s">21 день по модулям 5–6: простая, логистическая, пуассоновская и множественная регрессия. Кликабельные выводы R, задания с автопроверкой, два пробных экзамена на английском</div>
         <div class="t-p" id="home-ex3"></div></a>
       <a class="tile" href="#train"><div class="t-k">Выводы R</div><div class="t-h">Тренажёр выводов R</div>
-        <div class="t-s">890 выводов и 4450 вопросов: t-тесты, непараметрические тесты, таблицы сопряжённости, ANOVA, линейная и множественная, логистическая, пуассоновская регрессия</div>
+        <div class="t-s">1170 выводов и 5850 вопросов: t-тесты, непараметрические тесты, таблицы сопряжённости, ANOVA, линейная и множественная, логистическая, пуассоновская регрессия, смешанные модели (lmer, glmer, emmeans)</div>
         <div class="t-p" id="home-out"></div></a>
       <a class="tile" href="#methods"><div class="t-k">Теория</div><div class="t-h">Методы: объяснения</div>
-        <div class="t-s">Простыми словами и на примерах курса: t-тесты, ранговые тесты, доли и хи-квадрат, регрессии — что считает каждый метод и как читать его числа</div></a>
+        <div class="t-s">Простыми словами и на примерах курсов STAT 5101 и VDPAM 5290: тесты, ANOVA и сравнения после F, регрессии, предпосылки, смешанные модели и GLMM</div></a>
       <a class="tile" href="#guide"><div class="t-k">Шпаргалка</div><div class="t-h">Как читать вывод</div>
         <div class="t-s">Короткие правила к каждому виду вывода R и калькулятор</div></a>
       <a class="tile" href="#syntax"><div class="t-k">Код</div><div class="t-h">Тренажёр синтаксиса R</div>
-        <div class="t-s">__SYNCOUNT__ упражнений в 5 блоках: база, таблицы, функции и модели, ggplot2, tidyverse. Перепечатай код и выбери, что он делает</div>
+        <div class="t-s">__SYNCOUNT__ упражнений в 6 блоках: база, таблицы, функции и модели, ggplot2, tidyverse, смешанные модели и диагностика. Перепечатай код и выбери, что он делает</div>
         <div class="t-p" id="home-syn"></div></a>
       <a class="tile" href="#exp"><div class="t-k">Планы опытов</div><div class="t-h">Виды экспериментов</div>
         <div class="t-s">Описание опыта из свиноводства, потом вопросы: единица эксперимента, вид плана, рандомизация, найди ошибки, правильный анализ и вывод</div>
         <div class="t-p" id="home-exp"></div></a>
-      <div class="tile soon"><div class="t-k">Скоро</div><div class="t-h">Смешанные модели</div>
-        <div class="t-s">Следующий раздел, когда пройдём эти</div></div>
+      <a class="tile" href="#diag"><div class="t-k">Диагностика</div><div class="t-h">Предпосылки моделей</div>
+        <div class="t-s">__DIAGCOUNT__ наборов графиков остатков — нормальных и сломанных. Найди, что нарушено: линейность, дисперсии, нормальность, выбросы, независимость — и что с этим делать</div>
+        <div class="t-p" id="home-diag"></div></a>
     </div>
   </section>
   <section id="view-train" hidden>
@@ -230,6 +242,11 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     <div id="exp-card"></div>
   </section>
   <section id="view-expref" class="guide" hidden>__EXPREF__</section>
+  <section id="view-diag" hidden>
+    <div class="prog" id="diag-prog"></div>
+    <div id="diag-card"></div>
+  </section>
+  <section id="view-diagref" class="guide" hidden>__DIAGREF__</section>
 </main>
 
 <nav class="bottom" id="nav" hidden>
@@ -244,6 +261,7 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
 <script type="application/json" id="data">__DATA__</script>
 <script type="application/json" id="syndata">__SYNDATA__</script>
 <script type="application/json" id="expdata">__EXPDATA__</script>
+<script type="application/json" id="diagdata">__DIAGDATA__</script>
 <script>
 (function(){
   function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -253,7 +271,7 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
 
   /* =================== Output trainer =================== */
   var EX = JSON.parse(document.getElementById('data').textContent);
-  var CATS = [["all","Все"],["ttest","t-тесты"],["nonpar","Непараметрические"],["cat","Таблицы"],["anova","ANOVA"],["lin","Линейная"],["logit","Логистическая"],["pois","Пуассоновская"]];
+  var CATS = [["all","Все"],["ttest","t-тесты"],["nonpar","Непараметрические"],["cat","Таблицы"],["anova","ANOVA"],["lin","Линейная"],["logit","Логистическая"],["pois","Пуассоновская"],["mixed","Смешанные"]];
   var SUBS = {
     anova:[["aov","summary(aov)"],["lmfac","lm с фактором"],["tukey","TukeyHSD"]],
     lin:[["lin","Y ~ X"],["mlr","Множественная"],["logy","log(Y) ~ X"],["logx","Y ~ log(X)"],["loglog","log(Y) ~ log(X)"]],
@@ -261,13 +279,15 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     pois:[["p2","2 группы + offset"],["p3","3 группы + offset"],["px","X непрерывный"]],
     ttest:[["t2p","Pooled"],["t2w","Welch"],["tpair","Парный"],["t1","Одна выборка"]],
     nonpar:[["wrs","Ранговая сумма"],["wsr","Знаково-ранговый"],["sign","Тест знаков"]],
-    cat:[["c22","2×2: доли и OR"],["crc","Хи-квадрат r×c"],["fish","Фишер"],["mcn","Макнемар"]]
+    cat:[["c22","2×2: доли и OR"],["crc","Хи-квадрат r×c"],["fish","Фишер"],["mcn","Макнемар"]],
+    mixed:[["lmmh","LMM: иерархия"],["lmme","LMM: опыты и блоки"],["lmmr","Повторные измерения"],["glmmb","GLMM логистическая"],["glmmp","GLMM пуассоновская"]]
   };
   var SUBNAME = {aov:"ANOVA",lmfac:"lm с фактором",tukey:"TukeyHSD",lin:"Y ~ X",mlr:"Множественная",logy:"log(Y) ~ X",logx:"Y ~ log(X)",loglog:"log-log",
     g2:"Логистическая · 2 группы",gx:"Логистическая · X",g3:"Логистическая · 3 группы",p2:"Пуассоновская · 2 группы",p3:"Пуассоновская · 3 группы",px:"Пуассоновская · X",
     t2p:"t-тест · pooled",t2w:"t-тест · Welch",tpair:"t-тест · парный",t1:"t-тест · одна выборка",
     wrs:"Вилкоксон · ранговая сумма",wsr:"Вилкоксон · знаково-ранговый",sign:"Тест знаков",
-    c22:"Таблица 2×2",crc:"Хи-квадрат r×c",fish:"Тест Фишера",mcn:"Тест Макнемара"};
+    c22:"Таблица 2×2",crc:"Хи-квадрат r×c",fish:"Тест Фишера",mcn:"Тест Макнемара",
+    lmmh:"lmer · иерархические данные",lmme:"lmer · опыт",lmmr:"lmer · повторные измерения",glmmb:"glmer · логистическая",glmmp:"glmer · пуассоновская"};
   var KEY = "r-trainer-v1";
   var st = {cat:"all", sub:"", only:"", pos:{}, ans:{}};
   try { var s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s) { st.cat = s.cat || "all"; st.sub = s.sub || ""; st.only = s.only || ""; st.pos = s.pos || {}; st.ans = s.ans || {}; } } catch(e) {}
@@ -303,7 +323,7 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     c2.hidden = (route !== 'train') || st.cat === 'all';
   }
   function outSolved(){
-    var solved=0, per={anova:[0,0],lin:[0,0],logit:[0,0],pois:[0,0],ttest:[0,0],nonpar:[0,0],cat:[0,0]};
+    var solved=0, per={anova:[0,0],lin:[0,0],logit:[0,0],pois:[0,0],ttest:[0,0],nonpar:[0,0],cat:[0,0],mixed:[0,0]};
     EX.forEach(function(e){ e.qs.forEach(function(q,i){ var a=st.ans[qkey(e,i)]; if(a&&a.ok){ solved++; per[e.cat][0]++; } per[e.cat][1]++; }); });
     return {solved:solved, per:per};
   }
@@ -311,8 +331,8 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     var r = outSolved();
     if (route==='train' || route==='guide' || route==='methods') document.getElementById('stat').textContent = r.solved + " / " + TOTALQ;
     var p = document.getElementById('prog'); p.innerHTML='';
-    [["ttest","t-тесты"],["nonpar","Непарам."],["cat","Таблицы"],["anova","ANOVA"],["lin","Линейная"],["logit","Логист."],["pois","Пуассон"]].forEach(function(c){ p.appendChild(pboxs(c[1], r.per[c[0]][0], r.per[c[0]][1])); });
-    p.appendChild(pboxs("Всего", r.solved, TOTALQ));
+    [["ttest","t-тесты"],["nonpar","Непарам."],["cat","Таблицы"],["anova","ANOVA"],["lin","Линейная"],["logit","Логист."],["pois","Пуассон"],["mixed","Смешанные"]].forEach(function(c){ p.appendChild(pboxs(c[1], r.per[c[0]][0], r.per[c[0]][1])); });
+    var tb = pboxs("Всего", r.solved, TOTALQ); tb.classList.add('tot'); p.appendChild(tb);
   }
 
   function consoleHTML(text){
@@ -686,14 +706,210 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
   }
   function renderExpAll(scroll){ renderExpChips(); renderExpProg(); renderExpCard(scroll); }
 
+
+  /* =================== Assumptions (residual plots) =================== */
+  var DRAW = JSON.parse(document.getElementById('diagdata').textContent), DS = DRAW.S, DD = DRAW.X;
+  (function(){
+    var B="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    function dec(e){ if (!e || typeof e[2] !== 'string') return e; var lo=e[0], hi=e[1], s=e[2], o=[]; for (var i=0;i<s.length;i+=2){ var q=B.indexOf(s[i])*64+B.indexOf(s[i+1]); o.push(lo+(hi-lo)*q/4095); } return o; }
+    function S(v){ return typeof v === 'number' ? DS[v] : v; }
+    DD.forEach(function(x){
+      x.qs.forEach(function(q){ q.q=S(q.q); q.ex=S(q.ex); if (q.o) q.o=q.o.map(S); });
+      x.plots.forEach(function(p){ if (p.x) p.x=dec(p.x); if (p.y) p.y=dec(p.y); if (p.s) p.s=[dec(p.s[0]), dec(p.s[1])]; });
+    });
+  })();
+  var dById = {}; DD.forEach(function(x){ dById[x.id] = x; });
+  var DKEY = "r-diag-v1";
+  var ds = {pos:0, ans:{}, f:"", only:""};
+  try { var s4 = JSON.parse(localStorage.getItem(DKEY) || "null"); if (s4) { ds.pos = s4.pos || 0; ds.ans = s4.ans || {}; ds.f = s4.f || ""; ds.only = s4.only || ""; } } catch(e) {}
+  var DDN = [["slr","Простая регрессия"],["mlr","Множественная"],["grp","Группы (t / ANOVA)"],["lmm","Смешанная"],["logit","Логистическая"]];
+  function dsave(){ try { localStorage.setItem(DKEY, JSON.stringify(ds)); } catch(e) {} }
+  var DTOTQ = 0; DD.forEach(function(x){ DTOTQ += x.qs.length; });
+  function ddone(x){ return x.qs.every(function(q,i){ var a=ds.ans[x.id+":"+i]; return a&&a.ok; }); }
+  function dStats(){ var ok=0, done=0; DD.forEach(function(x){ var all=true; x.qs.forEach(function(q,i){ var a=ds.ans[x.id+":"+i]; if(a&&a.ok) ok++; else all=false; }); if(all) done++; }); return {ok:ok, done:done}; }
+  function dlist(){ return DD.filter(function(x){ return (!ds.f || x.d===ds.f) && (!ds.only || !ddone(x)); }); }
+  function renderDiagChips(){
+    var c = document.getElementById('chips-diag'); c.innerHTML='';
+    function fix(){ var L=dlist(); if (L.length && L.map(function(x){return x.id;}).indexOf(ds.pos)<0) ds.pos=L[0].id; dsave(); renderDiagAll(true); }
+    c.appendChild(chip("Все модели", !ds.f, function(){ ds.f=""; fix(); }));
+    DDN.forEach(function(d){ c.appendChild(chip(d[1], ds.f===d[0], function(){ ds.f=d[0]; fix(); })); });
+    c.appendChild(chip("Нерешённые", ds.only==="todo", function(){ ds.only = ds.only==="todo"?"":"todo"; fix(); }));
+  }
+  function renderDiagProg(){
+    var r = dStats();
+    if (route==='diag' || route==='diagref') document.getElementById('stat').textContent = r.ok + " / " + DTOTQ;
+    var p = document.getElementById('diag-prog'); p.innerHTML='';
+    p.appendChild(pbox("Решено вопросов", r.ok, DTOTQ));
+    p.appendChild(pbox("Наборов разобрано", r.done, DD.length));
+  }
+  function dcur(){
+    var L = dlist(), x = dById[ds.pos];
+    if (!x || (ds.f && x.d!==ds.f)) { if (!L.length) return null; x = L[0]; ds.pos = x.id; }
+    return {L:L, idx:L.indexOf(x), x:x};
+  }
+  function dgo(d){
+    var L = dlist(); if (!L.length) return;
+    var i = L.findIndex(function(x){ return x.id===ds.pos; });
+    if (i >= 0) i = (i+d+L.length)%L.length;
+    else if (d > 0) { i = L.findIndex(function(x){ return x.id>ds.pos; }); if (i<0) i=0; }
+    else { i = -1; L.forEach(function(x,j){ if (x.id<ds.pos) i=j; }); if (i<0) i=L.length-1; }
+    ds.pos = L[i].id; dsave(); renderDiagCard(true);
+  }
+  function dgoRandom(){ var L=dlist(); if(!L.length) return; var pool=L.filter(function(x){ return !ddone(x) && x.id!==ds.pos; }); if(!pool.length) pool=L; ds.pos = pool[Math.floor(Math.random()*pool.length)].id; dsave(); renderDiagCard(true); }
+  function dgoId(n){ if(!dById[n]) return false; ds.f=""; ds.only=""; ds.pos=n; dsave(); renderDiagAll(true); return true; }
+
+  // ---- drawing like R's plot.lm
+  function qnorm(p){
+    var a=[-39.6968302866538,220.946098424521,-275.928510446969,138.357751867269,-30.6647980661472,2.50662827745924],
+        b=[-54.4760987982241,161.585836858041,-155.698979859887,66.8013118877197,-13.2806815528857],
+        c=[-0.00778489400243029,-0.322396458041136,-2.40075827716184,-2.54973253934373,4.37466414146497,2.93816398269878],
+        d=[0.00778469570904146,0.32246712907004,2.445134137143,3.75440866190742], q, r;
+    if (p < 0.02425){ q=Math.sqrt(-2*Math.log(p)); return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1); }
+    if (p > 1-0.02425){ q=Math.sqrt(-2*Math.log(1-p)); return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1); }
+    q=p-0.5; r=q*q; return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+  }
+  function ppoints(n){ var a = n<=10 ? 3/8 : 0.5, o=[]; for (var i=1;i<=n;i++) o.push(qnorm((i-a)/(n+1-2*a))); return o; }
+  function nice(lo, hi, n){
+    if (hi===lo){ hi=lo+1; lo=lo-1; }
+    var span=hi-lo, step=Math.pow(10, Math.floor(Math.log10(span/n))), err=n/span*step;
+    if (err<=0.15) step*=10; else if (err<=0.35) step*=5; else if (err<=0.75) step*=2;
+    var t=[], v=Math.ceil(lo/step-1e-9)*step; for (; v<=hi+1e-9*step; v+=step) t.push(+v.toPrecision(10));
+    return t;
+  }
+  function tfmt(v){ var s = Math.abs(v)>=1e4||(Math.abs(v)<1e-3&&v!==0) ? v.toExponential(0) : String(+v.toPrecision(6)); return s.replace('-', '−'); }
+  function plotSVG(p){
+    var W=340, H=250, L=48, R=10, T=24, B=40, pw=W-L-R, ph=H-T-B;
+    var xs, ys, title, xl, yl, kind=p.k;
+    if (kind==='rvf'){ xs=p.x; ys=p.y; title=p.t||'Residuals vs Fitted'; xl=p.xl||'Fitted values'; yl='Residuals'; }
+    else if (kind==='qq'){ ys=p.y; xs=ppoints(ys.length); title=p.t||'Q-Q Residuals'; xl='Theoretical Quantiles'; yl=p.yl||'Standardized residuals'; }
+    else if (kind==='sl'){ xs=p.x; ys=p.y; title='Scale-Location'; xl='Fitted values'; yl='√|Standardized residuals|'; }
+    else if (kind==='cook'){ ys=p.y; xs=ys.map(function(_,i){return i+1;}); title="Cook's distance"; xl='Obs. number'; yl="Cook's distance"; }
+    else { ys=p.y; xs=ys.map(function(_,i){return i+1;}); title='Residuals vs Order'; xl='Порядок (день)'; yl='Residuals'; }
+    var xmin=Math.min.apply(null,xs), xmax=Math.max.apply(null,xs), ymin=Math.min.apply(null,ys), ymax=Math.max.apply(null,ys);
+    if (kind==='cook' || kind==='sl') ymin=0;
+    var dx=(xmax-xmin)||1, dy=(ymax-ymin)||1; xmin-=dx*0.04; xmax+=dx*0.04; ymin-= (kind==='cook'||kind==='sl')?0:dy*0.06; ymax+=dy*0.08;
+    function X(v){ return L+(v-xmin)/(xmax-xmin)*pw; } function Y(v){ return T+ph-(v-ymin)/(ymax-ymin)*ph; }
+    var h='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" font-family="Arial,Helvetica,sans-serif" role="img" aria-label="'+esc(title)+'">';
+    h+='<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#fff"/>';
+    h+='<text x="'+(L+pw/2)+'" y="15" text-anchor="middle" font-size="12" font-weight="700" fill="#111">'+esc(title)+'</text>';
+    h+='<rect x="'+L+'" y="'+T+'" width="'+pw+'" height="'+ph+'" fill="none" stroke="#333" stroke-width="0.8"/>';
+    nice(xmin,xmax,5).forEach(function(t){ if (t<xmin||t>xmax) return; var x=X(t); h+='<line x1="'+x+'" y1="'+(T+ph)+'" x2="'+x+'" y2="'+(T+ph+4)+'" stroke="#333" stroke-width="0.8"/><text x="'+x+'" y="'+(T+ph+15)+'" text-anchor="middle" font-size="9.5" fill="#222">'+tfmt(t)+'</text>'; });
+    nice(ymin,ymax,5).forEach(function(t){ if (t<ymin||t>ymax) return; var y=Y(t); h+='<line x1="'+(L-4)+'" y1="'+y+'" x2="'+L+'" y2="'+y+'" stroke="#333" stroke-width="0.8"/><text x="'+(L-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="9.5" fill="#222">'+tfmt(t)+'</text>'; });
+    h+='<text x="'+(L+pw/2)+'" y="'+(H-6)+'" text-anchor="middle" font-size="10.5" fill="#111">'+esc(xl)+'</text>';
+    h+='<text transform="translate(11,'+(T+ph/2)+') rotate(-90)" text-anchor="middle" font-size="'+(yl.length>18?9:10.5)+'" fill="#111">'+esc(yl)+'</text>';
+    if (kind==='rvf' || kind==='ord'){ if (ymin<0 && ymax>0) h+='<line x1="'+L+'" y1="'+Y(0)+'" x2="'+(L+pw)+'" y2="'+Y(0)+'" stroke="#888" stroke-width="1" stroke-dasharray="1.5,2.5"/>'; }
+    if (kind==='qq'){
+      var n=ys.length, q1=ys[Math.floor((n-1)*0.25)]+((n-1)*0.25%1)*(ys[Math.ceil((n-1)*0.25)]-ys[Math.floor((n-1)*0.25)]), q3=ys[Math.floor((n-1)*0.75)]+((n-1)*0.75%1)*(ys[Math.ceil((n-1)*0.75)]-ys[Math.floor((n-1)*0.75)]);
+      var z1=qnorm(0.25), z3=qnorm(0.75), sl=(q3-q1)/(z3-z1), ic=q1-sl*z1;
+      h+='<line x1="'+X(xmin)+'" y1="'+Y(ic+sl*xmin)+'" x2="'+X(xmax)+'" y2="'+Y(ic+sl*xmax)+'" stroke="#777" stroke-width="1" stroke-dasharray="4,3" clip-path="url(#c)"/>';
+    }
+    h+='<clipPath id="c"><rect x="'+L+'" y="'+T+'" width="'+pw+'" height="'+ph+'"/></clipPath>';
+    if (kind==='cook'){ xs.forEach(function(x,i){ h+='<line x1="'+X(x)+'" y1="'+Y(0)+'" x2="'+X(x)+'" y2="'+Y(ys[i])+'" stroke="#222" stroke-width="1"/>'; }); }
+    else {
+      if (kind==='ord'){ h+='<polyline fill="none" stroke="#999" stroke-width="0.8" points="'+xs.map(function(x,i){return X(x).toFixed(1)+','+Y(ys[i]).toFixed(1);}).join(' ')+'"/>'; }
+      xs.forEach(function(x,i){ h+='<circle cx="'+X(x).toFixed(1)+'" cy="'+Y(ys[i]).toFixed(1)+'" r="2.3" fill="none" stroke="#222" stroke-width="0.9"/>'; });
+    }
+    if (p.s){ h+='<polyline fill="none" stroke="#d62728" stroke-width="1.4" clip-path="url(#c)" points="'+p.s[0].map(function(x,i){return X(x).toFixed(1)+','+Y(p.s[1][i]).toFixed(1);}).join(' ')+'"/>'; }
+    // labels: observation numbers of the 3 most extreme points (plot.lm id.n = 3)
+    if (p.l){
+      p.l.forEach(function(ix){
+        var px, py, lab = (typeof ix === 'number') ? ix+1 : 0;
+        if (kind==='qq'){ var pos = ix[0]; lab = ix[1]; px=xs[pos]; py=ys[pos]; }
+        else { if (ix>=xs.length) return; px=xs[ix]; py=ys[ix]; }
+        var tx = X(px) + (X(px) > L+pw-24 ? -5 : 5), anchor = X(px) > L+pw-24 ? 'end' : 'start';
+        h+='<text x="'+tx.toFixed(1)+'" y="'+(Y(py)+3).toFixed(1)+'" font-size="9" fill="#333" text-anchor="'+anchor+'">'+lab+'</text>';
+      });
+    }
+    return h+'</svg>';
+  }
+  function renderDiagCard(scroll){
+    var c = dcur(), box = document.getElementById('diag-card');
+    if (!c){ box.innerHTML = '<article class="card"><h2>Здесь всё решено</h2><p class="intro">В этом фильтре не осталось нерешённых наборов. Выбери другую модель или сними фильтр «Нерешённые».</p></article>'; return; }
+    var x = c.x;
+    var h = '<article class="card">';
+    h += '<div class="card-h"><span class="idx">№ '+x.id+' · '+(c.idx>=0 ? (c.idx+1)+' из '+c.L.length : 'решён, осталось '+c.L.length)+'</span><span class="tag">'+esc(x.title)+'</span></div>';
+    h += '<p class="intro dg-story">'+esc(x.story)+'</p>';
+    h += '<pre class="console dg-code">'+consoleHTML(x.code)+'</pre>';
+    h += '<div class="plots">'+x.plots.map(function(p){ return '<div class="plot">'+plotSVG(p)+'</div>'; }).join('')+'</div>';
+    h += '<div class="qs">';
+    x.qs.forEach(function(q,i){
+      var k = x.id+":"+i, a = ds.ans[k];
+      var cls = a && a.ok ? (a.miss ? ' done-bad':' done-ok') : '';
+      h += '<div class="q'+cls+'" data-i="'+i+'"><div class="qn">Вопрос '+(i+1)+' из '+x.qs.length+'</div><div class="qt">'+q.q+'</div>';
+      if (q.t==='mc'){
+        h += '<div class="opts">';
+        q.o.forEach(function(o,j){ var oc=''; if (a && a.picked && a.picked.indexOf(j)>=0) oc=(j===q.a)?' ok':' bad'; h += '<button type="button" class="opt'+oc+'" data-j="'+j+'">'+o+'</button>'; });
+        h += '</div>';
+      } else if (q.t==='multi'){
+        h += '<div class="mhint">Отметь все подходящие варианты, потом «Проверить».</div><div class="opts">';
+        q.o.forEach(function(o,j){
+          var oc='', sel = a && a.sel && a.sel.indexOf(j)>=0;
+          if (a && a.checked){ var isE = q.a.indexOf(j)>=0; oc = sel ? (isE?' ok':' bad') : (isE?' miss':''); }
+          else if (sel) oc=' sel';
+          h += '<button type="button" class="opt'+oc+'" data-j="'+j+'" aria-pressed="'+(sel?'true':'false')+'">'+o+'</button>';
+        });
+        h += '</div><div class="row"><button type="button" class="btn mchk">Проверить</button><span class="res'+(a&&a.ok?' ok':'')+'">'+(a&&a.checked?(a.ok?'✓ Всё верно':'Есть промахи: зелёный пунктир — пропущено, красное — лишнее'):'')+'</span></div>';
+      } else {
+        h += '<div class="row"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Ответ" value="'+(a&&a.val?String(a.val).replace(/"/g,'&quot;'):'')+'"><button type="button" class="btn chk">Проверить</button><button type="button" class="btn ghost show">Ответ</button></div>'+
+             '<div class="row"><span class="res'+(a&&a.ok?' ok':'')+'">'+(a&&a.ok?(a.shown?'Ответ: '+String(q.a).replace('.',','):'✓ Верно'):'')+'</span></div>';
+      }
+      h += '<div class="ex'+(a&&(a.ok||a.checked||(a.picked&&a.picked.length))?' on':'')+'">'+q.ex+'</div></div>';
+    });
+    h += '</div></article>';
+    box.innerHTML = h;
+    bindDiag(x);
+    if (scroll) window.scrollTo({top:0});
+  }
+  function bindDiag(x){
+    document.querySelectorAll('#diag-card .q').forEach(function(div){
+      var i = +div.getAttribute('data-i'), q = x.qs[i], k = x.id+":"+i, ex = div.querySelector('.ex');
+      if (q.t==='mc'){
+        div.querySelectorAll('.opt').forEach(function(b){ b.onclick=function(){
+          var j=+b.getAttribute('data-j'), a=ds.ans[k]||{picked:[]}; a.picked=a.picked||[]; if(a.picked.indexOf(j)<0) a.picked.push(j);
+          ex.classList.add('on');
+          if (j===q.a){ a.ok=true; b.classList.add('ok'); div.classList.add(a.miss?'done-bad':'done-ok'); } else { if(!a.ok) a.miss=true; b.classList.add('bad'); }
+          ds.ans[k]=a; dsave(); renderDiagProg();
+        }; });
+      } else if (q.t==='multi'){
+        div.querySelectorAll('.opt').forEach(function(b){ b.onclick=function(){
+          var a=ds.ans[k]||{sel:[]}; a.sel=a.sel||[];
+          if (a.checked){ a.checked=false; div.querySelectorAll('.opt').forEach(function(o){ o.classList.remove('ok','bad','miss'); var jj=+o.getAttribute('data-j'); if(a.sel.indexOf(jj)>=0) o.classList.add('sel'); }); div.querySelector('.res').textContent=''; }
+          var j=+b.getAttribute('data-j'), p=a.sel.indexOf(j);
+          if (p>=0){ a.sel.splice(p,1); b.classList.remove('sel'); b.setAttribute('aria-pressed','false'); } else { a.sel.push(j); b.classList.add('sel'); b.setAttribute('aria-pressed','true'); }
+          ds.ans[k]=a; dsave();
+        }; });
+        div.querySelector('.mchk').onclick=function(){
+          var a=ds.ans[k]||{sel:[]}; a.sel=a.sel||[]; a.checked=true;
+          var right = a.sel.length===q.a.length && q.a.every(function(j){ return a.sel.indexOf(j)>=0; });
+          if (right) a.ok=true; else if (!a.ok) a.miss=true;
+          div.querySelectorAll('.opt').forEach(function(o){ var j=+o.getAttribute('data-j'), sel=a.sel.indexOf(j)>=0, isE=q.a.indexOf(j)>=0; o.classList.remove('sel','ok','bad','miss'); if(sel) o.classList.add(isE?'ok':'bad'); else if(isE) o.classList.add('miss'); });
+          var res=div.querySelector('.res'); res.className='res'+(right?' ok':' bad'); res.textContent = right ? '✓ Всё верно' : 'Есть промахи: зелёный пунктир — пропущено, красное — лишнее';
+          ex.classList.add('on'); if (right) div.classList.add(a.miss?'done-bad':'done-ok');
+          ds.ans[k]=a; dsave(); renderDiagProg();
+        };
+      } else {
+        var inp=div.querySelector('input'), res=div.querySelector('.res');
+        function check(){ var v=parseNum(inp.value); if(isNaN(v)) return; var a=ds.ans[k]||{}; a.val=inp.value;
+          if (Math.abs(v-q.a) <= q.tol + 1e-9){ a.ok=true; res.className='res ok'; res.textContent='✓ Верно'; ex.classList.add('on'); div.classList.add(a.miss?'done-bad':'done-ok'); }
+          else { if(!a.ok) a.miss=true; res.className='res bad'; res.textContent='✗ Не то. Попробуй ещё или открой ответ'; }
+          ds.ans[k]=a; dsave(); renderDiagProg(); }
+        div.querySelector('.chk').onclick=check;
+        inp.addEventListener('keydown', function(ev){ if(ev.key==='Enter') check(); });
+        div.querySelector('.show').onclick=function(){ var a=ds.ans[k]||{}; if(!a.ok) a.miss=true; a.ok=true; a.shown=true; ds.ans[k]=a; dsave(); res.className='res ok'; res.textContent='Ответ: '+String(q.a).replace('.',','); ex.classList.add('on'); div.classList.add('done-bad'); renderDiagProg(); };
+      }
+    });
+  }
+  function renderDiagAll(scroll){ renderDiagChips(); renderDiagProg(); renderDiagCard(scroll); }
+
   /* =================== Router =================== */
-  var ROUTES = ['home','train','guide','methods','syntax','synref','exp','expref'];
-  var TITLES = {home:'Тренажёр R', train:'Тренажёр выводов R', guide:'Тренажёр выводов R', methods:'Тренажёр выводов R', syntax:'Тренажёр синтаксиса R', synref:'Тренажёр синтаксиса R', exp:'Виды экспериментов', expref:'Виды экспериментов'};
+  var ROUTES = ['home','train','guide','methods','syntax','synref','exp','expref','diag','diagref'];
+  var TITLES = {home:'Тренажёр R', train:'Тренажёр выводов R', guide:'Тренажёр выводов R', methods:'Тренажёр выводов R', syntax:'Тренажёр синтаксиса R', synref:'Тренажёр синтаксиса R', exp:'Виды экспериментов', expref:'Виды экспериментов', diag:'Предпосылки моделей', diagref:'Предпосылки моделей'};
   var route = 'home';
   function renderHome(){
     var r = outSolved(), s = synStats();
     document.getElementById('home-out').innerHTML = 'Решено '+r.solved+' из '+TOTALQ+'<div class="bar"><i style="width:'+Math.round(100*r.solved/TOTALQ)+'%"></i></div>';
     var xr = xStats(); document.getElementById('home-exp').innerHTML = 'Решено '+xr.ok+' из '+XTOTQ+' · '+XD.length+' опытов, 12 видов<div class="bar"><i style="width:'+Math.round(100*xr.ok/XTOTQ)+'%"></i></div>';
+    var dr = dStats(); document.getElementById('home-diag').innerHTML = 'Решено '+dr.ok+' из '+DTOTQ+'<div class="bar"><i style="width:'+Math.round(100*dr.ok/DTOTQ)+'%"></i></div>';
     document.getElementById('home-syn').innerHTML = 'Решено '+s.ok+' из '+s.tot+' · перепечатано '+s.typed+'<div class="bar"><i style="width:'+Math.round(100*s.ok/s.tot)+'%"></i></div>';
     var e3 = document.getElementById('home-ex3');
     if (e3) {
@@ -708,37 +924,41 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);bord
     if (ROUTES.indexOf(r) < 0) r = 'home';
     route = r;
     ROUTES.forEach(function(x){ document.getElementById('view-'+x).hidden = (x !== r); });
-    var out = (r==='train'||r==='guide'||r==='methods'), syn = (r==='syntax'||r==='synref'), exq = (r==='exp'||r==='expref');
+    var out = (r==='train'||r==='guide'||r==='methods'), syn = (r==='syntax'||r==='synref'), exq = (r==='exp'||r==='expref'), dgq = (r==='diag'||r==='diagref');
     document.getElementById('tabs-out').hidden = !out;
     document.getElementById('tabs-syn').hidden = !syn;
     document.getElementById('tabs-exp').hidden = !exq;
+    document.getElementById('tabs-diag').hidden = !dgq;
+    ['diag','diagref'].forEach(function(t){ document.getElementById('tab-'+t).setAttribute('aria-selected', r===t?'true':'false'); });
     ['exp','expref'].forEach(function(t){ document.getElementById('tab-'+t).setAttribute('aria-selected', r===t?'true':'false'); });
     ['train','guide','methods'].forEach(function(t){ document.getElementById('tab-'+t).setAttribute('aria-selected', r===t?'true':'false'); });
     ['syntax','synref'].forEach(function(t){ document.getElementById('tab-'+t).setAttribute('aria-selected', r===t?'true':'false'); });
     document.getElementById('chips-cat').hidden = (r !== 'train');
     document.getElementById('chips-syn').hidden = (r !== 'syntax');
     document.getElementById('chips-exp').hidden = (r !== 'exp');
+    document.getElementById('chips-diag').hidden = (r !== 'diag');
     document.getElementById('chips-sub').hidden = (r !== 'train') || st.cat === 'all';
-    document.getElementById('nav').hidden = !(r==='train' || r==='syntax' || r==='exp');
+    document.getElementById('nav').hidden = !(r==='train' || r==='syntax' || r==='exp' || r==='diag');
     document.getElementById('menu-btn').hidden = (r==='home');
     document.getElementById('title').textContent = TITLES[r];
-    document.getElementById('jump').setAttribute('aria-label', r==='syntax' ? 'Номер упражнения' : r==='exp' ? 'Номер опыта' : 'Номер примера');
+    document.getElementById('jump').setAttribute('aria-label', r==='syntax' ? 'Номер упражнения' : r==='exp' ? 'Номер опыта' : r==='diag' ? 'Номер набора' : 'Номер примера');
     if (r==='home') renderHome();
     if (out) renderAll(false);
     if (syn) renderSynAll(false);
     if (exq) renderExpAll(false);
+    if (dgq) renderDiagAll(false);
     try { if (location.hash !== '#'+r) history.replaceState(null, '', '#'+r); } catch(e) {}
     if (!noScroll) window.scrollTo({top:0});
   }
   function hashRoute(){ var h = (location.hash||'').replace('#',''); return ROUTES.indexOf(h)>=0 ? h : 'home'; }
 
   document.getElementById('menu-btn').onclick = function(){ show('home'); };
-  ['train','guide','methods','syntax','synref','exp','expref'].forEach(function(t){ document.getElementById('tab-'+t).onclick = function(){ show(t); }; });
-  document.getElementById('prev').onclick = function(){ route==='syntax' ? sgo(-1) : route==='exp' ? xgo(-1) : go(-1); };
-  document.getElementById('next').onclick = function(){ route==='syntax' ? sgo(1) : route==='exp' ? xgo(1) : go(1); };
-  document.getElementById('rand').onclick = function(){ route==='syntax' ? sgoRandom() : route==='exp' ? xgoRandom() : goRandom(); };
+  ['train','guide','methods','syntax','synref','exp','expref','diag','diagref'].forEach(function(t){ document.getElementById('tab-'+t).onclick = function(){ show(t); }; });
+  document.getElementById('prev').onclick = function(){ route==='syntax' ? sgo(-1) : route==='exp' ? xgo(-1) : route==='diag' ? dgo(-1) : go(-1); };
+  document.getElementById('next').onclick = function(){ route==='syntax' ? sgo(1) : route==='exp' ? xgo(1) : route==='diag' ? dgo(1) : go(1); };
+  document.getElementById('rand').onclick = function(){ route==='syntax' ? sgoRandom() : route==='exp' ? xgoRandom() : route==='diag' ? dgoRandom() : goRandom(); };
   var jump = document.getElementById('jump');
-  function doJump(){ var n=parseInt(jump.value,10); var ok = route==='syntax' ? sgoId(n) : route==='exp' ? xgoId(n) : goId(n); if (ok){ jump.value=''; jump.blur(); } }
+  function doJump(){ var n=parseInt(jump.value,10); var ok = route==='syntax' ? sgoId(n) : route==='exp' ? xgoId(n) : route==='diag' ? dgoId(n) : goId(n); if (ok){ jump.value=''; jump.blur(); } }
   jump.addEventListener('keydown', function(ev){ if (ev.key==='Enter') doJump(); });
   jump.addEventListener('change', doJump);
   document.querySelectorAll('.guide a[data-go]').forEach(function(a){ a.addEventListener('click', function(ev){ ev.preventDefault(); var el=document.getElementById(a.getAttribute('data-go')); if(el) el.scrollIntoView(); }); });

@@ -935,6 +935,15 @@ def main():
             new3.append(fn(rng, bank[i % len(bank)]))
     order3 = np.random.default_rng(9).permutation(len(new3))
     out += [new3[i] for i in order3]
+    # v1.4: mixed models (lmer, glmer, emmeans), appended after id 890
+    import gen4
+    new4 = []
+    for sub, fn, bank, count in gen4.PLAN4:
+        for i in range(count):
+            rng = np.random.default_rng(seed + (len(out) + len(new4)) * 7919)
+            new4.append(fn(rng, bank[i % len(bank)]))
+    order4 = np.random.default_rng(10).permutation(len(new4))
+    out += [new4[i] for i in order4]
     for i, e in enumerate(out):
         e["id"] = i + 1
     json.dump(out, open("examples.json", "w"), ensure_ascii=False, separators=(",", ":"))

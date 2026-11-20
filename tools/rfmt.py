@@ -69,7 +69,7 @@ def pval_col(ps, digits=3, eps_text="< 2e-16"):
         for i, s in zip(fix, f):
             out[i] = s
     if sci:
-        f = _sci_joint([ps[i] for i in sci], digits)
+        f = [x.strip() for x in format_real([ps[i] for i in sci], digits)]
         for i, s in zip(sci, f):
             out[i] = s
     return out
@@ -123,7 +123,7 @@ def matrix(rownames, colnames, cols_vals, digits=7, fixed_dec=None):
         if fixed_dec is not None and fixed_dec.get(j) is not None:
             s = [f"{v:.{fixed_dec[j]}f}" for v in vals]
         else:
-            s = fmt_joint(vals, digits)
+            s = [x.strip() for x in format_real(list(vals), digits)]
         cols.append((cn, s))
     return table(rownames, cols)
 
@@ -131,3 +131,82 @@ def matrix(rownames, colnames, cols_vals, digits=7, fixed_dec=None):
 def r7(v):
     """One number printed by R with 7 significant digits."""
     return fmt1(v, 7)
+
+
+# ---------------------------------------------------------------------------
+# R's formatReal: joint fixed / scientific choice (used by format(), print())
+def _sig_info(x, digits):
+    """(kpower, nsig, neg) for x shown with `digits` significant digits."""
+    if x == 0 or not math.isfinite(x):
+        return 0, 1, x < 0
+    s = f"{abs(x):.{digits - 1}e}"
+    mant, ex = s.split("e")
+    kp = int(ex)
+    m = mant.replace(".", "").rstrip("0")
+    return kp, max(1, len(m)), x < 0
+
+
+def format_real(vals, digits=7):
+    """Format a numeric vector the way R's format(x, digits) does (common width, right-justified)."""
+    info = [_sig_info(v, digits) for v in vals]
+    neg = 1 if any(v < 0 for v in vals) else 0
+    mxsl, rgt, mxns, mxe, mne = 1, 0, 1, -999, 999
+    for v, (kp, ns, _) in zip(vals, info):
+        if v == 0:
+            continue
+        left = kp + 1 if kp >= 0 else 1
+        mxsl = max(mxsl, left)
+        rgt = max(rgt, ns - kp - 1)
+        mxns = max(mxns, ns)
+        mxe, mne = max(mxe, kp), min(mne, kp)
+    rgt = max(0, min(rgt, 15))
+    wF = neg + mxsl + (rgt + 1 if rgt else 0)
+    e = 2 if (mxe >= 100 or mne <= -100) else 1
+    d = mxns - 1
+    wE = neg + (1 if d > 0 else 0) + d + 4 + e
+    if all(v == 0 for v in vals) or wF <= wE:
+        out = [f"{v:.{rgt}f}" for v in vals]
+        out = [s.lstrip("-") if float(s) == 0 else s for s in out]
+    else:
+        out = []
+        for v in vals:
+            s = f"{v:.{d}e}"
+            mant, ex = s.split("e")
+            sign, digs = ex[0], ex[1:].lstrip("0") or "0"
+            out.append(f"{mant}e{sign}{digs.zfill(2 if e == 1 else 3)}")
+    w = max(len(s) for s in out)
+    return [s.rjust(w) for s in out]
+
+
+def abbreviate(s, minlength):
+    """R abbreviate(): drop lower-case vowels from the right, then lower-case letters, then truncate."""
+    if len(s) <= minlength:
+        return s
+    ch = list(s)
+    for pool in ("aeiou", "abcdefghijklmnopqrstuvwxyz"):
+        i = len(ch) - 1
+        while len(ch) > minlength and i > 0:
+            if ch[i] in pool:
+                del ch[i]
+            i -= 1
+    return "".join(ch[:max(minlength, 0)]) if len(ch) > minlength else "".join(ch)
+
+
+def coefmat(names, cols, star_p=None, digits=4):
+    """printCoefmat: cols = [(header, values, kind)], kind in cs (joint coef/se/df), tst, p."""
+    cs = [(h, v) for h, v, k in cols if k == "cs"]
+    allv = [abs(x) for _, v in cs for x in v if x != 0 and math.isfinite(x)]
+    dec = max(1, digits - (1 + math.floor(math.log10(min(allv))))) if allv else 1
+    joint = format_real([round(x, dec) for _, v in cs for x in v], digits)
+    out_cols, pos = [], 0
+    n = len(names)
+    for h, v, k in cols:
+        if k == "cs":
+            out_cols.append((h, joint[pos:pos + n]))
+            pos += n
+        elif k == "tst":
+            out_cols.append((h, format_real([round(x, 3) for x in v], digits)))
+        elif k == "p":
+            out_cols.append((h, pval_col(list(v))))
+    stars_l = [stars(p) for p in star_p] if star_p is not None else None
+    return table(names, out_cols, stars_l)

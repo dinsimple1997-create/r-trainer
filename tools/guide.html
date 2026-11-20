@@ -12,6 +12,9 @@
   <a href="#" data-go="g-tt">t.test</a>
   <a href="#" data-go="g-wx">wilcox.test</a>
   <a href="#" data-go="g-cat">Таблицы</a>
+  <a href="#" data-go="g-lmer">lmer</a>
+  <a href="#" data-go="g-glmer">glmer</a>
+  <a href="#" data-go="g-emm">emmeans</a>
   <a href="#" data-go="g-ci">ДИ и прогноз</a>
   <a href="#" data-go="g-calc">Калькулятор</a>
 </div>
@@ -221,6 +224,63 @@ sample estimates:
   <li><b>«Chi-squared approximation may be incorrect»</b> — есть ожидаемые &lt; 5: <code>fisher.test(tab)</code>. Его odds ratio — условная оценка, чуть отличается от ad/bc.</li>
   <li><b>mcnemar.test</b> — одни и те же единицы дважды: важны только несогласные клетки b и c, X² = (b − c)²/(b + c).</li>
 </ol>
+
+<h2 id="g-lmer">lmer: смешанная модель (lmerTest)</h2>
+<pre class="console">Random effects:
+ Groups   Name        Variance Std.Dev.
+ herdid   (Intercept) 0.1298   0.3602
+ Residual             1.2183   1.1038
+Number of obs: 1255, groups:  herdid, 31
+
+Fixed effects:
+              Estimate Std. Error         df t value Pr(>|t|)
+(Intercept)  4.715e+00  7.507e-02  3.437e+01  62.801  < 2e-16 ***
+heifer1     -6.488e-01  7.048e-02  1.234e+03  -9.204  < 2e-16 ***
+dim_sc       3.223e-01  4.607e-02  1.232e+03   6.996  4.3e-12 ***</pre>
+<ul>
+  <li><b>Две дисперсии.</b> herdid — разброс между стадами, Residual — между коровами внутри стада. ICC = 0,1298 / (0,1298 + 1,2183) = 9,6 %.</li>
+  <li><b>Std.Dev. группы</b> — типичный сдвиг среднего стада от общего: ±0,36. Примерно 95 % стад в пределах ±1,96 × 0,36.</li>
+  <li><b>Fixed effects</b> читаются как в lm, «при той же ферме». <code>-6.488e-01</code> = −0,6488: так R пишет числа, когда в одном столбце очень разные величины.</li>
+  <li><b>df</b> (Satterthwaite) — сколько независимых сведений у коэффициента. У признака уровня стада df ≈ числу стад, у признака коровы — ≈ числу коров.</li>
+  <li>Без lmerTest столбцов df и Pr(&gt;|t|) нет — только t value.</li>
+  <li>Строка <code>boundary (singular) fit</code> над выводом: дисперсия группы оценилась в 0 — кластеризации не видно.</li>
+</ul>
+
+<h2 id="g-glmer">glmer: логистическая и пуассоновская со случайным эффектом</h2>
+<pre class="console">     AIC      BIC   logLik deviance df.resid
+   412.7    424.0   -203.4    406.7      312
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ block_id (Intercept) 0.4825   0.6946
+Number of obs: 315, groups:  block_id, 11
+
+Fixed effects:
+                 Estimate Std. Error z value Pr(>|z|)
+(Intercept)       0.06079    0.26945   0.226    0.822
+treatmentVaccine -0.81471    0.24755  -3.291 0.000998 ***</pre>
+<ul>
+  <li><b>Строки Residual нет</b>: шум задаёт биномиальное (или пуассоновское) распределение.</li>
+  <li><b>OR</b> = e<sup>−0,815</sup> = 0,44: шансы инфекции у вакцинированных в 0,44 раза от контроля <b>внутри одного блока</b>.</li>
+  <li><b>ICC (логистическая)</b> = 0,4825 / (0,4825 + 3,29) = 12,8 %.</li>
+  <li><b>Пуассоновская</b>: e<sup>b</sup> — IRR; e<sup>b₀</sup> × N — частота у референта на типичной ферме. Сверхдисперсия: <code>dispersion_glmer(m)</code> вне 0,75–1,4 — проблема.</li>
+  <li>AIC, BIC — для сравнения моделей (меньше — лучше). deviance здесь = −2·logLik.</li>
+</ul>
+
+<h2 id="g-emm">emmeans и pairs: средние и сравнения после модели</h2>
+<pre class="console"> Trt emmean     SE   df lower.CL upper.CL
+ 1     2.60 0.0388 12.6     2.52     2.69
+ 3     2.52 0.0388 12.6     2.44     2.61
+
+ contrast estimate     SE df t.ratio p.value
+ 1 - 3     0.07937 0.0317 28   2.508  0.1176
+ 3 - 5    -0.13360 0.0317 28  -4.222  0.0020</pre>
+<ul>
+  <li><b>emmean</b> — LS-среднее варианта для «типичного» блока; рядом SE и 95 % ДИ.</li>
+  <li><b>contrast</b> «1 − 3» — среднее 1 минус среднее 3.</li>
+  <li><b>p.value</b> после <code>adjust = "tukey"</code> уже с поправкой на все пары. Поэтому разница, значимая в summary (против референта), может быть незначимой здесь.</li>
+  <li><code>cld()</code> ставит буквы: общая буква — разница не доказана.</li>
+</ul>
 
 <h2 id="g-ci">Доверительные интервалы и прогноз</h2>
 <div class="tw"><table>
